@@ -1,3 +1,4 @@
+const REFRESH_LABEL = "5 Min Refresh";
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
   setInterval(loadSnapshot, 10000);
@@ -82,7 +83,7 @@ function renderTopCard(targetId, label, item) {
       <div class="metric"><span>Take Profit Exit</span><strong>${item.takeProfit}</strong></div>
       <div class="metric"><span>Get Out Point</span><strong>${item.getOutPoint}</strong></div>
       <div class="metric"><span>Stop Loss</span><strong>${item.stopLoss}</strong></div>
-      <div class="metric"><span>Engine</span><strong>10 Min Refresh</strong></div>
+      <div class="metric"><span>Engine</span><strong>${REFRESH_LABEL}</strong></div>
     </div>
   `;
 }
