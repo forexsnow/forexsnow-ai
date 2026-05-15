@@ -1,71 +1,187 @@
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background: radial-gradient(circle at top, #12345a, #07111f 45%, #030712);
-  color: white;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0b3154, #07111f 42%, #020617);
+  color: #e5f3ff;
+}
+
+.status-strip {
+  text-align: center;
+  padding: 22px 20px;
+  background: #071827;
+  border-bottom: 1px solid #173c5c;
+  color: #b7c8d9;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.status-strip strong {
+  color: #eaf7ff;
 }
 
 .app {
-  max-width: 1100px;
+  max-width: 1120px;
   margin: auto;
   padding: 28px;
 }
 
 .hero {
-  text-align: center;
-  padding: 36px 16px;
+  padding: 58px 0 46px;
 }
 
-.logo {
-  font-size: 46px;
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 34px;
+  font-weight: 900;
+  color: #ffffff;
+  margin-bottom: 120px;
 }
 
-.eyebrow {
+.snow-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0ea5e9, #67e8f9);
+  font-size: 34px;
+  filter: drop-shadow(0 0 18px rgba(56,189,248,0.5));
+}
+
+.brand-tag {
   color: #38bdf8;
-  letter-spacing: 4px;
-  font-weight: bold;
+  letter-spacing: 7px;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  text-align: center;
 }
 
 h1 {
-  font-size: 44px;
-  margin: 10px 0;
-  color: #e0f2fe;
+  font-size: clamp(52px, 9vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -4px;
+  margin: 18px auto;
+  color: #f8fbff;
+  font-weight: 900;
+  text-align: center;
+  max-width: 900px;
 }
 
 .subtitle {
-  color: #cbd5e1;
+  color: #b6c8d9;
+  font-size: 24px;
+  line-height: 1.7;
+  max-width: 900px;
+  margin: auto;
+  text-align: center;
+}
+
+.hero-actions {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 42px;
+  flex-wrap: wrap;
+}
+
+.primary-btn,
+.secondary-btn {
+  border: none;
+  text-decoration: none;
+  border-radius: 999px;
+  padding: 18px 34px;
+  font-weight: 900;
   font-size: 18px;
 }
 
-.status {
-  display: inline-block;
-  margin-top: 12px;
-  background: #082f49;
+.primary-btn {
+  background: linear-gradient(135deg, #0ea5e9, #67e8f9);
+  color: #04111f;
+}
+
+.secondary-btn {
+  background: #111827;
+  color: #ffffff;
+  border: 1px solid #1e4f7a;
+}
+
+.last-refresh {
+  text-align: center;
+  color: #9fb6c9;
+  font-size: 18px;
+  margin-top: 30px;
+}
+
+.top-opportunity,
+.forecast-card,
+.table-card,
+.risk-card {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid #1e4f7a;
+  border-radius: 24px;
+  padding: 26px;
+  margin-top: 24px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+}
+
+.top-opportunity {
+  border-color: #38bdf8;
+}
+
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.top-label,
+.section-label {
   color: #7dd3fc;
-  padding: 8px 14px;
-  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 4px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
-.top-card,
-.panel {
-  background: rgba(15, 23, 42, 0.88);
-  border: 1px solid #1e3a5f;
-  border-radius: 18px;
-  padding: 22px;
+.top-pair {
+  font-size: 42px;
+  margin: 8px 0;
+}
+
+.setup-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
   margin-top: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
 }
 
-.top-card h2 {
-  margin-top: 0;
-  color: #38bdf8;
+.metric {
+  background: #081827;
+  border: 1px solid #173c5c;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.metric span {
+  color: #8fb6ce;
+  font-size: 13px;
+}
+
+.metric strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 20px;
 }
 
 .badge {
   display: inline-block;
-  padding: 6px 12px;
+  padding: 7px 13px;
   border-radius: 999px;
-  font-weight: bold;
+  font-weight: 900;
 }
 
 .bullish {
@@ -85,26 +201,56 @@ h1 {
 table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 14px;
+  min-width: 760px;
 }
 
 th {
   text-align: left;
   color: #7dd3fc;
-  border-bottom: 1px solid #334155;
-  padding: 12px;
+  padding: 14px;
+  border-bottom: 1px solid #25506f;
 }
 
 td {
-  padding: 12px;
-  border-bottom: 1px solid #1e293b;
-}
-
-tr:hover {
-  background: rgba(56, 189, 248, 0.06);
+  padding: 14px;
+  border-bottom: 1px solid #162f48;
 }
 
 .small {
   color: #94a3b8;
   font-size: 14px;
+}
+
+.footer {
+  text-align: center;
+  color: #6b8aa5;
+  font-size: 14px;
+  padding: 44px 0 20px;
+}
+
+@media (max-width: 700px) {
+  .app {
+    padding: 22px;
+  }
+
+  .brand-row {
+    margin-bottom: 90px;
+    font-size: 30px;
+  }
+
+  h1 {
+    font-size: 56px;
+  }
+
+  .subtitle {
+    font-size: 21px;
+  }
+
+  .setup-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .top-header {
+    display: block;
+  }
 }
