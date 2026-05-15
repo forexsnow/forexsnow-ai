@@ -1,21 +1,13 @@
-* {
-  box-sizing: border-box;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   margin: 0;
-  font-family: "Inter", Arial, sans-serif;
-  background: radial-gradient(circle at top, #083654 0%, #06111f 38%, #020617 100%);
-  color: #eaf7ff;
+  font-family: 'Inter', sans-serif;
+  background: radial-gradient(circle at top, #0b3154, #07111f 42%, #020617);
+  color: #e5f3ff;
 }
 
 .status-strip {
   text-align: center;
-  padding: 22px 18px;
+  padding: 22px 20px;
   background: #071827;
   border-bottom: 1px solid #173c5c;
   color: #b7c8d9;
@@ -24,13 +16,12 @@ body {
 }
 
 .status-strip strong {
-  color: #ffffff;
+  color: #eaf7ff;
 }
 
 .app {
-  width: 100%;
   max-width: 1120px;
-  margin: 0 auto;
+  margin: auto;
   padding: 28px;
 }
 
@@ -44,7 +35,8 @@ body {
   gap: 16px;
   font-size: 34px;
   font-weight: 900;
-  margin-bottom: 110px;
+  color: #ffffff;
+  margin-bottom: 120px;
 }
 
 .snow-icon {
@@ -55,49 +47,36 @@ body {
   place-items: center;
   background: linear-gradient(135deg, #0ea5e9, #67e8f9);
   font-size: 34px;
-  box-shadow: 0 0 26px rgba(56, 189, 248, 0.45);
-}
-
-.brand-tag,
-.section-label,
-.top-label {
-  color: #7dd3fc;
-  letter-spacing: 7px;
-  font-size: 15px;
-  font-weight: 900;
-  text-transform: uppercase;
+  filter: drop-shadow(0 0 18px rgba(56,189,248,0.5));
 }
 
 .brand-tag {
+  color: #38bdf8;
+  letter-spacing: 7px;
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
   text-align: center;
 }
 
 h1 {
-  max-width: 900px;
-  margin: 18px auto;
-  text-align: center;
-  font-size: clamp(50px, 9vw, 96px);
+  font-size: clamp(52px, 9vw, 96px);
   line-height: 0.95;
   letter-spacing: -4px;
-  font-weight: 900;
+  margin: 18px auto;
   color: #f8fbff;
-}
-
-h2 {
-  margin: 16px 0 26px;
-  font-size: clamp(32px, 5vw, 52px);
-  line-height: 1.08;
   font-weight: 900;
-  color: #eaf7ff;
+  text-align: center;
+  max-width: 900px;
 }
 
 .subtitle {
-  max-width: 900px;
-  margin: 0 auto;
-  text-align: center;
   color: #b6c8d9;
   font-size: 24px;
   line-height: 1.7;
+  max-width: 900px;
+  margin: auto;
+  text-align: center;
 }
 
 .hero-actions {
@@ -140,79 +119,69 @@ h2 {
 .forecast-card,
 .table-card,
 .risk-card {
-  width: 100%;
-  background: rgba(15, 23, 42, 0.94);
+  background: rgba(15, 23, 42, 0.92);
   border: 1px solid #1e4f7a;
-  border-radius: 28px;
-  padding: 34px;
-  margin-top: 28px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
+  border-radius: 24px;
+  padding: 26px;
+  margin-top: 24px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
 }
 
 .top-opportunity {
   border-color: #38bdf8;
 }
 
-.bearish-card {
-  border-color: #ef4444;
+.top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
 }
 
-.top-header,
-.table-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 18px;
+.top-label,
+.section-label {
+  color: #7dd3fc;
+  font-size: 13px;
+  letter-spacing: 4px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .top-pair {
-  margin: 18px 0;
-  font-size: clamp(48px, 9vw, 88px);
-  line-height: 0.95;
-  letter-spacing: -3px;
-  font-weight: 900;
+  font-size: 42px;
+  margin: 8px 0;
 }
 
 .setup-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-  margin-top: 28px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 20px;
 }
 
 .metric {
   background: #081827;
   border: 1px solid #173c5c;
-  padding: 24px;
-  border-radius: 22px;
-  min-width: 0;
+  padding: 16px;
+  border-radius: 18px;
 }
 
 .metric span {
-  display: block;
   color: #8fb6ce;
-  font-size: 18px;
+  font-size: 13px;
 }
 
 .metric strong {
   display: block;
-  margin-top: 10px;
-  color: #eaf7ff;
-  font-size: clamp(24px, 5vw, 34px);
-  line-height: 1.1;
-  word-break: break-word;
+  margin-top: 6px;
+  font-size: 20px;
 }
 
 .badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 16px;
+  display: inline-block;
+  padding: 7px 13px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 16px;
-  line-height: 1;
 }
 
 .bullish {
@@ -225,6 +194,86 @@ h2 {
   color: #f87171;
 }
 
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 760px;
+}
+
+th {
+  text-align: left;
+  color: #7dd3fc;
+  padding: 14px;
+  border-bottom: 1px solid #25506f;
+}
+
+td {
+  padding: 14px;
+  border-bottom: 1px solid #162f48;
+}
+
+.small {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.footer {
+  text-align: center;
+  color: #6b8aa5;
+  font-size: 14px;
+  padding: 44px 0 20px;
+}
+.progress-wrap {
+  margin-top: 28px;
+  margin-bottom: 34px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+
+  color: #8ed8ff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 1px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 14px;
+
+  background: rgba(255,255,255,0.08);
+
+  border-radius: 999px;
+
+  overflow: hidden;
+
+  border: 1px solid rgba(0,191,255,0.18);
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+
+  border-radius: 999px;
+
+  background: linear-gradient(
+    90deg,
+    #00bfff,
+    #4de1ff
+  );
+
+  box-shadow:
+    0 0 20px rgba(0,191,255,0.6);
+
+  transition: width 1s linear;
+}
 .confidence-row {
   display: flex;
   justify-content: space-between;
@@ -233,7 +282,7 @@ h2 {
   font-size: 20px;
   margin-top: 28px;
   padding-top: 22px;
-  border-top: 1px solid rgba(125, 211, 252, 0.12);
+  border-top: 1px solid rgba(125, 211, 252, 0.08);
 }
 
 .confidence-row strong {
@@ -256,12 +305,14 @@ h2 {
   border-radius: 999px;
   background: linear-gradient(90deg, #00bfff, #22e6c7);
   box-shadow: 0 0 22px rgba(34, 230, 199, 0.55);
-  transition: width 0.8s ease;
+  transition: width 1s linear;
 }
 
-.bearish-progress {
-  background: linear-gradient(90deg, #ef4444, #f87171);
-  box-shadow: 0 0 22px rgba(248, 113, 113, 0.55);
+.table-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .update-pill {
@@ -273,172 +324,29 @@ h2 {
   font-size: 16px;
   white-space: nowrap;
 }
-
-.table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 16px 8px;
-  border-bottom: 1px solid rgba(125, 211, 252, 0.2);
-  color: #e5f3ff;
-  vertical-align: middle;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-th {
-  color: #7dd3fc;
-  font-weight: 900;
-  font-size: 15px;
-}
-
-td {
-  font-size: 15px;
-}
-
-th:nth-child(1),
-td:nth-child(1) {
-  width: 19%;
-}
-
-th:nth-child(2),
-td:nth-child(2) {
-  width: 19%;
-}
-
-th:nth-child(3),
-td:nth-child(3) {
-  width: 17%;
-}
-
-th:nth-child(4),
-td:nth-child(4),
-th:nth-child(5),
-td:nth-child(5),
-th:nth-child(6),
-td:nth-child(6) {
-  width: 15%;
-}
-
-.table-card .badge {
-  font-size: 13px;
-  padding: 7px 10px;
-}
-
-.small {
-  color: #94a3b8;
-  font-size: 14px;
-}
-
-.footer {
-  text-align: center;
-  color: #6b8aa5;
-  font-size: 14px;
-  padding: 44px 0 20px;
-}
-
 @media (max-width: 700px) {
   .app {
     padding: 22px;
   }
 
-  .status-strip {
-    font-size: 17px;
-  }
-
   .brand-row {
-    font-size: 30px;
     margin-bottom: 90px;
-  }
-
-  .snow-icon {
-    width: 58px;
-    height: 58px;
     font-size: 30px;
-  }
-
-  .brand-tag,
-  .section-label,
-  .top-label {
-    font-size: 13px;
-    letter-spacing: 6px;
   }
 
   h1 {
-    font-size: 54px;
-    letter-spacing: -3px;
-  }
-
-  h2 {
-    font-size: 34px;
-    letter-spacing: -1px;
+    font-size: 56px;
   }
 
   .subtitle {
     font-size: 21px;
   }
 
-  .top-opportunity,
-  .forecast-card,
-  .table-card,
-  .risk-card {
-    padding: 26px 22px;
-    border-radius: 24px;
-  }
-
-  .top-header,
-  .table-head {
-    gap: 12px;
-  }
-
-  .top-pair {
-    font-size: 58px;
-  }
-
   .setup-grid {
     grid-template-columns: 1fr;
   }
 
-  .metric {
-    padding: 22px;
-  }
-
-  .metric span {
-    font-size: 17px;
-  }
-
-  .metric strong {
-    font-size: 30px;
-  }
-
-  .update-pill {
-    font-size: 14px;
-    padding: 8px 12px;
-  }
-
-  th,
-  td {
-    padding: 14px 6px;
-    font-size: 12px;
-  }
-
-  th {
-    font-size: 12px;
-  }
-
-  .table-card .badge {
-    font-size: 11px;
-    padding: 6px 8px;
+  .top-header {
+    display: block;
   }
 }
