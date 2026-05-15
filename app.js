@@ -88,13 +88,30 @@ function renderTopCard(targetId, label, item) {
 }
 
 function renderRows(targetId, rows) {
-  document.getElementById(targetId).innerHTML = rows.map(item => `
-    <tr>
-      <td>${item.pair}</td>
-      <td>${item.confidence}%</td>
-      <td>${item.entry}</td>
-      <td>${item.takeProfit}</td>
-      <td>${item.stopLoss}</td>
-    </tr>
-  `).join("");
+
+  document.getElementById(targetId).innerHTML =
+    rows.map(item => `
+
+      <tr>
+
+        <td>${item.pair}</td>
+
+        <td>
+          <span class="badge ${item.bias.toLowerCase()}">
+            ${item.bias}
+          </span>
+        </td>
+
+        <td>${item.confidence}%</td>
+
+        <td>${item.entry}</td>
+
+        <td>${item.takeProfit}</td>
+
+        <td>${item.stopLoss}</td>
+
+      </tr>
+
+    `).join("");
+
 }
