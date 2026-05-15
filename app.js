@@ -1,74 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
   setInterval(loadSnapshot, 10000);
-  setInterval(updateProgressBar, 1000);
 });
-
-let refreshStarted = Date.now();
-
-function renderTopCard(targetId, label, item) {
-  if (!item) {
-    document.getElementById(targetId).innerHTML = `
-      <div class="top-label">${label}</div>
-      <p>No opportunities available right now.</p>
-    `;
-    return;
-  }
-
-  document.getElementById(targetId).innerHTML = `
-    <div class="top-header">
-      <div>
-        <div class="top-label">${label}</div>
-        <h2 class="top-pair">${item.pair}</h2>
-        <span class="badge ${item.bias.toLowerCase()}">${item.bias}</span>
-      </div>
-    </div>
-
-    <div class="setup-grid">
-      <div class="metric">
-        <span>Confidence</span>
-        <strong>${item.confidence}%</strong>
-      </div>
-
-      <div class="metric">
-        <span>Entry Trigger</span>
-        <strong>${item.entry}</strong>
-      </div>
-
-      <div class="metric">
-        <span>Take Profit Exit</span>
-        <strong>${item.takeProfit}</strong>
-      </div>
-
-      <div class="metric">
-        <span>Get Out Point</span>
-        <strong>${item.getOutPoint}</strong>
-      </div>
-
-      <div class="metric">
-        <span>Stop Loss</span>
-        <strong>${item.stopLoss}</strong>
-      </div>
-
-      <div class="metric">
-        <span>Engine</span>
-        <strong>10 Min Refresh</strong>
-      </div>
-    </div>
-  `;
-}
-
-function renderRows(targetId, rows) {
-  document.getElementById(targetId).innerHTML = rows.map(item => `
-    <tr>
-      <td>${item.pair}</td>
-      <td>${item.confidence}%</td>
-      <td>${item.entry}</td>
-      <td>${item.takeProfit}</td>
-      <td>${item.stopLoss}</td>
-    </tr>
-  `).join("");
-}
 
 async function loadSnapshot() {
   try {
@@ -93,14 +26,26 @@ async function loadSnapshot() {
     document.getElementById("lastRefresh").textContent =
       `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
 
-    document.getElementById("marketThesis").textContent =
-      data.marketThesis;
-
-    document.getElementById("forecastConfidence").textContent =
-      `${bullishTop ? bullishTop.confidence : 0}%`;
+    document.getElementById("marketThesis").textContent = data.marketThesis;
 
     document.getElementById("updatePill").textContent =
       `Updates: ${data.updateCount}`;
+
+    if (bullishTop) {
+      document.getElementById("forecastConfidence").textContent =
+        `${bullishTop.confidence}%`;
+
+      document.getElementById("bullishProgressFill").style.width =
+        `${bullishTop.confidence}%`;
+    }
+
+    if (bearishTop) {
+      document.getElementById("bearishForecastConfidence").textContent =
+        `${bearishTop.confidence}%`;
+
+      document.getElementById("bearishProgressFill").style.width =
+        `${bearishTop.confidence}%`;
+    }
 
     renderTopCard("bullishTopPick", "Bullish Top Opportunity", bullishTop);
     renderTopCard("bearishTopPick", "Bearish Top Opportunity", bearishTop);
@@ -110,26 +55,46 @@ async function loadSnapshot() {
 
   } catch (error) {
     console.error(error);
-
-    document.getElementById("bullishTopPick").innerHTML =
-      "Snapshot failed to load.";
-
-    document.getElementById("bearishTopPick").innerHTML =
-      "Snapshot failed to load.";
   }
 }
 
-function updateProgressBar() {
-  const elapsed = Date.now() - refreshStarted;
-  const percent = Math.min((elapsed / 600000) * 100, 100);
-
-  const fill = document.getElementById("progressFill");
-
-  if (fill) {
-    fill.style.width = `${percent}%`;
+function renderTopCard(targetId, label, item) {
+  if (!item) {
+    document.getElementById(targetId).innerHTML = `
+      <div class="top-label">${label}</div>
+      <p>No opportunities available right now.</p>
+    `;
+    return;
   }
 
-  if (percent >= 100) {
-    refreshStarted = Date.now();
-  }
+  document.getElementById(targetId).innerHTML = `
+    <div class="top-header">
+      <div>
+        <div class="top-label">${label}</div>
+        <h2 class="top-pair">${item.pair}</h2>
+        <span class="badge ${item.bias.toLowerCase()}">${item.bias}</span>
+      </div>
+    </div>
+
+    <div class="setup-grid">
+      <div class="metric"><span>Confidence</span><strong>${item.confidence}%</strong></div>
+      <div class="metric"><span>Entry Trigger</span><strong>${item.entry}</strong></div>
+      <div class="metric"><span>Take Profit Exit</span><strong>${item.takeProfit}</strong></div>
+      <div class="metric"><span>Get Out Point</span><strong>${item.getOutPoint}</strong></div>
+      <div class="metric"><span>Stop Loss</span><strong>${item.stopLoss}</strong></div>
+      <div class="metric"><span>Engine</span><strong>10 Min Refresh</strong></div>
+    </div>
+  `;
+}
+
+function renderRows(targetId, rows) {
+  document.getElementById(targetId).innerHTML = rows.map(item => `
+    <tr>
+      <td>${item.pair}</td>
+      <td>${item.confidence}%</td>
+      <td>${item.entry}</td>
+      <td>${item.takeProfit}</td>
+      <td>${item.stopLoss}</td>
+    </tr>
+  `).join("");
 }
