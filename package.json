@@ -1,7 +1,7 @@
 {
   "name": "forexsnow-live-ai",
   "version": "1.0.0",
-  "description": "ForexSnow live 8 minute AI assisted forex dashboard",
+  "description": "ForexSnow live 5 minute AI assisted forex dashboard",
   "main": "server.js",
   "type": "module",
   "scripts": {
