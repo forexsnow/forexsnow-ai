@@ -1,100 +1,83 @@
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
-
   setInterval(loadSnapshot, 10000);
-
   setInterval(updateProgressBar, 1000);
 });
 
 let refreshStarted = Date.now();
 
+function renderTopCard(targetId, label, item) {
+  if (!item) {
+    document.getElementById(targetId).innerHTML = `
+      <div class="top-label">${label}</div>
+      <p>No opportunities available right now.</p>
+    `;
+    return;
+  }
+
+  document.getElementById(targetId).innerHTML = `
+    <div class="top-header">
+      <div>
+        <div class="top-label">${label}</div>
+        <h2 class="top-pair">${item.pair}</h2>
+        <span class="badge ${item.bias.toLowerCase()}">${item.bias}</span>
+      </div>
+    </div>
+
+    <div class="setup-grid">
+      <div class="metric">
+        <span>Confidence</span>
+        <strong>${item.confidence}%</strong>
+      </div>
+
+      <div class="metric">
+        <span>Entry Trigger</span>
+        <strong>${item.entry}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Take Profit Exit</span>
+        <strong>${item.takeProfit}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Get Out Point</span>
+        <strong>${item.getOutPoint}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Stop Loss</span>
+        <strong>${item.stopLoss}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Engine</span>
+        <strong>10 Min Refresh</strong>
+      </div>
+    </div>
+  `;
+}
+
+function renderRows(targetId, rows) {
+  document.getElementById(targetId).innerHTML = rows.map(item => `
+    <tr>
+      <td>${item.pair}</td>
+      <td>${item.confidence}%</td>
+      <td>${item.entry}</td>
+      <td>${item.takeProfit}</td>
+      <td>${item.stopLoss}</td>
+    </tr>
+  `).join("");
+}
+
 async function loadSnapshot() {
-
   try {
-
     const response = await fetch(
       "https://forexsnow-ai-production.up.railway.app/api/snapshot",
-      {
-        cache: "no-store"
-      }
+      { cache: "no-store" }
     );
 
     const data = await response.json();
-
-    const top = data.topPick;
-
-    document.getElementById("lastRefresh").textContent =
-      `Last refreshed: ${new Date(
-        data.updatedAt
-      ).toLocaleString()}`;
-
-    document.getElementById("marketThesis").textContent =
-      data.marketThesis;
-
-    document.getElementById("forecastConfidence").textContent =
-      `${top.confidence}%`;
-
-    document.getElementById("updatePill").textContent =
-      `Updates: ${data.updateCount}`;
-
-    document.getElementById("progressFill").style.width =
-      `${top.confidence}%`;
-
-    document.getElementById("topPick").innerHTML = `
-      <div class="top-header">
-
-        <div>
-
-          <div class="top-label">
-            Top Opportunity
-          </div>
-
-          <h2 class="top-pair">
-            ${top.pair}
-          </h2>
-
-          <span class="badge ${top.bias.toLowerCase()}">
-            ${top.bias}
-          </span>
-
-        </div>
-
-      </div>
-
-      <div class="setup-grid">
-
-        <div class="metric">
-          <span>Confidence</span>
-          <strong>${top.confidence}%</strong>
-        </div>
-
-        <div class="metric">
-          <span>Entry Trigger</span>
-          <strong>${top.entry}</strong>
-        </div>
-
-        <div class="metric">
-          <span>Take Profit Exit</span>
-          <strong>${top.takeProfit}</strong>
-        </div>
-
-        <div class="metric">
-          <span>Get Out Point</span>
-          <strong>${top.getOutPoint}</strong>
-        </div>
-
-        <div class="metric">
-          <span>Stop Loss</span>
-          <strong>${top.stopLoss}</strong>
-        </div>
-
-        <div class="metric">
-          <span>Engine</span>
-          <strong>10 Min Refresh</strong>
-        </div>
-
-      </div>
-    `;
 
     const bullish = data.rankings
       .filter(item => item.bias === "Bullish")
@@ -104,51 +87,49 @@ async function loadSnapshot() {
       .filter(item => item.bias === "Bearish")
       .sort((a, b) => b.confidence - a.confidence);
 
-    document.getElementById("bullishRankings").innerHTML =
-      bullish.map(item => `
-        <tr>
-          <td>${item.pair}</td>
-          <td>${item.confidence}%</td>
-          <td>${item.entry}</td>
-          <td>${item.takeProfit}</td>
-          <td>${item.stopLoss}</td>
-        </tr>
-      `).join("");
+    const bullishTop = bullish[0];
+    const bearishTop = bearish[0];
 
-    document.getElementById("bearishRankings").innerHTML =
-      bearish.map(item => `
-        <tr>
-          <td>${item.pair}</td>
-          <td>${item.confidence}%</td>
-          <td>${item.entry}</td>
-          <td>${item.takeProfit}</td>
-          <td>${item.stopLoss}</td>
-        </tr>
-      `).join("");
+    document.getElementById("lastRefresh").textContent =
+      `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
+
+    document.getElementById("marketThesis").textContent =
+      data.marketThesis;
+
+    document.getElementById("forecastConfidence").textContent =
+      `${bullishTop ? bullishTop.confidence : 0}%`;
+
+    document.getElementById("updatePill").textContent =
+      `Updates: ${data.updateCount}`;
+
+    renderTopCard("bullishTopPick", "Bullish Top Opportunity", bullishTop);
+    renderTopCard("bearishTopPick", "Bearish Top Opportunity", bearishTop);
+
+    renderRows("bullishRankings", bullish);
+    renderRows("bearishRankings", bearish);
 
   } catch (error) {
-
     console.error(error);
 
-    document.getElementById("topPick").innerHTML =
-      `Snapshot failed to load.`;
+    document.getElementById("bullishTopPick").innerHTML =
+      "Snapshot failed to load.";
 
+    document.getElementById("bearishTopPick").innerHTML =
+      "Snapshot failed to load.";
   }
-
 }
 
 function updateProgressBar() {
+  const elapsed = Date.now() - refreshStarted;
+  const percent = Math.min((elapsed / 600000) * 100, 100);
 
-  const elapsed =
-    Date.now() - refreshStarted;
+  const fill = document.getElementById("progressFill");
 
-  const percent = Math.min(
-    (elapsed / 600000) * 100,
-    100
-  );
+  if (fill) {
+    fill.style.width = `${percent}%`;
+  }
 
   if (percent >= 100) {
     refreshStarted = Date.now();
   }
-
 }
