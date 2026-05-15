@@ -3,98 +3,241 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>ForexSnow AI</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
   <div class="status-strip">
-    <strong>Status:</strong> Snapshot dashboard active. Data is informational, not financial advice.
+    <strong>Status:</strong>
+    Snapshot dashboard active. Data is informational, not financial advice.
   </div>
 
   <main class="app">
 
     <header class="hero">
+
       <div class="brand-row">
         <div class="snow-icon">❄️</div>
+
         <strong>ForexSnow</strong>
       </div>
 
-      <p class="brand-tag">AI-Assisted Forex Market Snapshots</p>
+      <p class="brand-tag">
+        AI-Assisted Forex Market Snapshots
+      </p>
 
-      <h1>Come play in the snow.</h1>
+      <h1>
+        Come play in the snow.
+      </h1>
 
       <p class="subtitle">
-        ForexSnow tracks forex momentum, sentiment, and market opportunity signals
-        in a clean snapshot dashboard built for fast decision support.
+        ForexSnow tracks forex momentum, sentiment, and market opportunity
+        signals in a clean snapshot dashboard built for fast decision support.
       </p>
 
       <div class="hero-actions">
-        <a href="#dashboard" class="primary-btn">View Snapshot</a>
-        <button class="secondary-btn" onclick="loadSnapshot()">Refresh Snapshot</button>
+
+        <a href="#dashboard" class="primary-btn">
+          View Snapshot
+        </a>
+
+        <button
+          class="secondary-btn"
+          onclick="loadSnapshot()"
+        >
+          Refresh Snapshot
+        </button>
+
       </div>
 
-      <p class="last-refresh" id="lastRefresh">Last refreshed: loading...</p>
+      <p class="last-refresh" id="lastRefresh">
+        Last refreshed: loading...
+      </p>
+
     </header>
 
-    <section class="top-opportunity" id="topPick">
-      Loading top opportunity...
-    </section>
-
     <section class="forecast-card">
-      <p class="section-label">Market Read</p>
-      <h2>Snow Forecast</h2>
 
-      <p id="marketThesis">Loading market read...</p>
+      <p class="section-label">
+        Bullish Market Read
+      </p>
+
+      <h2>
+        Bullish Snow Forecast
+      </h2>
+
+      <p id="marketThesis">
+        Loading market read...
+      </p>
 
       <div class="confidence-row">
-        <span>Confidence</span>
-        <strong id="forecastConfidence">0%</strong>
+        <span>Bullish Confidence</span>
+
+        <strong id="forecastConfidence">
+          0%
+        </strong>
       </div>
 
       <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
+        <div
+          class="progress-fill"
+          id="bullishProgressFill"
+        ></div>
       </div>
+
     </section>
 
-    <section class="table-card" id="dashboard">
+    <section
+      class="top-opportunity"
+      id="bullishTopPick"
+    >
+      Loading bullish top opportunity...
+    </section>
+
+    <section
+      class="table-card"
+      id="dashboard"
+    >
+
       <div class="table-head">
+
         <div>
-          <p class="section-label">Rankings</p>
-          <h2>Opportunity Table</h2>
+          <p class="section-label">
+            Bullish Positions
+          </p>
+
+          <h2>
+            Bullish Opportunity Table
+          </h2>
         </div>
 
-        <div class="update-pill" id="updatePill">
+        <div
+          class="update-pill"
+          id="updatePill"
+        >
           Updates: 0
         </div>
+
       </div>
 
       <div class="table-wrap">
+
         <table>
+
           <thead>
             <tr>
-              <th>Rank</th>
               <th>Pair</th>
-              <th>Bias</th>
               <th>Confidence</th>
               <th>Entry</th>
               <th>Take Profit</th>
               <th>Stop Loss</th>
             </tr>
           </thead>
-          <tbody id="rankings"></tbody>
+
+          <tbody id="bullishRankings"></tbody>
+
         </table>
+
       </div>
+
+    </section>
+
+    <section class="forecast-card bearish-card">
+
+      <p class="section-label">
+        Bearish Market Read
+      </p>
+
+      <h2>
+        Bearish Snow Forecast
+      </h2>
+
+      <p>
+        Downside pressure opportunities currently detected by ForexSnow.
+      </p>
+
+      <div class="confidence-row">
+        <span>Bearish Confidence</span>
+
+        <strong id="bearishForecastConfidence">
+          0%
+        </strong>
+      </div>
+
+      <div class="progress-bar">
+        <div
+          class="progress-fill bearish-progress"
+          id="bearishProgressFill"
+        ></div>
+      </div>
+
+    </section>
+
+    <section
+      class="top-opportunity bearish-card"
+      id="bearishTopPick"
+    >
+      Loading bearish top opportunity...
+    </section>
+
+    <section class="table-card">
+
+      <div class="table-head">
+
+        <div>
+          <p class="section-label">
+            Bearish Positions
+          </p>
+
+          <h2>
+            Bearish Opportunity Table
+          </h2>
+        </div>
+
+      </div>
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Pair</th>
+              <th>Confidence</th>
+              <th>Entry</th>
+              <th>Take Profit</th>
+              <th>Stop Loss</th>
+            </tr>
+          </thead>
+
+          <tbody id="bearishRankings"></tbody>
+
+        </table>
+
+      </div>
+
     </section>
 
     <section class="risk-card">
-      <h2>Risk Notice</h2>
-      <p>ForexSnow is informational only. It is not financial advice. Always verify data before trading.</p>
+
+      <h2>
+        Risk Notice
+      </h2>
+
+      <p>
+        ForexSnow is informational only. It is not financial advice.
+        Always verify data before trading.
+      </p>
+
     </section>
 
     <footer class="footer">
@@ -103,6 +246,7 @@
 
   </main>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=9"></script>
+
 </body>
 </html>
