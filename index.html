@@ -47,13 +47,32 @@
     </section>
 
     <section class="forecast-card">
+      <p class="section-label">Market Read</p>
       <h2>Snow Forecast</h2>
+
       <p id="marketThesis">Loading market read...</p>
+
+      <div class="confidence-row">
+        <span>Confidence</span>
+        <strong id="forecastConfidence">0%</strong>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
     </section>
 
     <section class="table-card" id="dashboard">
-      <p class="section-label">Live Dashboard</p>
-      <h2>Opportunity Table</h2>
+      <div class="table-head">
+        <div>
+          <p class="section-label">Rankings</p>
+          <h2>Opportunity Table</h2>
+        </div>
+
+        <div class="update-pill" id="updatePill">
+          Updates: 0
+        </div>
+      </div>
 
       <div class="table-wrap">
         <table>
@@ -84,6 +103,6 @@
 
   </main>
 
-<script src="app.js?v=3"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
