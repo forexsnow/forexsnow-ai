@@ -1,13 +1,21 @@
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: radial-gradient(circle at top, #0b3154, #07111f 42%, #020617);
-  color: #e5f3ff;
+  font-family: "Inter", Arial, sans-serif;
+  background: radial-gradient(circle at top, #083654 0%, #06111f 38%, #020617 100%);
+  color: #eaf7ff;
 }
 
 .status-strip {
   text-align: center;
-  padding: 22px 20px;
+  padding: 22px 18px;
   background: #071827;
   border-bottom: 1px solid #173c5c;
   color: #b7c8d9;
@@ -16,12 +24,13 @@ body {
 }
 
 .status-strip strong {
-  color: #eaf7ff;
+  color: #ffffff;
 }
 
 .app {
+  width: 100%;
   max-width: 1120px;
-  margin: auto;
+  margin: 0 auto;
   padding: 28px;
 }
 
@@ -35,8 +44,7 @@ body {
   gap: 16px;
   font-size: 34px;
   font-weight: 900;
-  color: #ffffff;
-  margin-bottom: 120px;
+  margin-bottom: 110px;
 }
 
 .snow-icon {
@@ -47,7 +55,7 @@ body {
   place-items: center;
   background: linear-gradient(135deg, #0ea5e9, #67e8f9);
   font-size: 34px;
-  filter: drop-shadow(0 0 18px rgba(56, 189, 248, 0.5));
+  box-shadow: 0 0 26px rgba(56, 189, 248, 0.45);
 }
 
 .brand-tag,
@@ -60,32 +68,36 @@ body {
   text-transform: uppercase;
 }
 
+.brand-tag {
+  text-align: center;
+}
+
 h1 {
-  font-size: clamp(52px, 9vw, 96px);
+  max-width: 900px;
+  margin: 18px auto;
+  text-align: center;
+  font-size: clamp(50px, 9vw, 96px);
   line-height: 0.95;
   letter-spacing: -4px;
-  margin: 18px auto;
-  color: #f8fbff;
   font-weight: 900;
-  text-align: center;
-  max-width: 900px;
+  color: #f8fbff;
 }
 
 h2 {
-  color: #eaf7ff;
-  font-size: clamp(36px, 6vw, 56px);
+  margin: 16px 0 26px;
+  font-size: clamp(32px, 5vw, 52px);
   line-height: 1.08;
-  margin: 18px 0 30px;
   font-weight: 900;
+  color: #eaf7ff;
 }
 
 .subtitle {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
   color: #b6c8d9;
   font-size: 24px;
   line-height: 1.7;
-  max-width: 900px;
-  margin: auto;
-  text-align: center;
 }
 
 .hero-actions {
@@ -128,12 +140,14 @@ h2 {
 .forecast-card,
 .table-card,
 .risk-card {
-  background: rgba(15, 23, 42, 0.92);
+  width: 100%;
+  background: rgba(15, 23, 42, 0.94);
   border: 1px solid #1e4f7a;
-  border-radius: 24px;
-  padding: 26px;
-  margin-top: 24px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+  border-radius: 28px;
+  padding: 34px;
+  margin-top: 28px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
 }
 
 .top-opportunity {
@@ -147,22 +161,22 @@ h2 {
 .top-header,
 .table-head {
   display: flex;
-  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 18px;
 }
 
 .top-pair {
-  font-size: clamp(54px, 10vw, 92px);
+  margin: 18px 0;
+  font-size: clamp(48px, 9vw, 88px);
   line-height: 0.95;
   letter-spacing: -3px;
-  margin: 18px 0;
   font-weight: 900;
 }
 
 .setup-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   margin-top: 28px;
 }
@@ -172,9 +186,11 @@ h2 {
   border: 1px solid #173c5c;
   padding: 24px;
   border-radius: 22px;
+  min-width: 0;
 }
 
 .metric span {
+  display: block;
   color: #8fb6ce;
   font-size: 18px;
 }
@@ -182,16 +198,21 @@ h2 {
 .metric strong {
   display: block;
   margin-top: 10px;
-  font-size: 30px;
   color: #eaf7ff;
+  font-size: clamp(24px, 5vw, 34px);
+  line-height: 1.1;
+  word-break: break-word;
 }
 
 .badge {
-  display: inline-block;
-  padding: 9px 17px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
   border-radius: 999px;
   font-weight: 900;
-  font-size: 18px;
+  font-size: 16px;
+  line-height: 1;
 }
 
 .bullish {
@@ -261,27 +282,58 @@ h2 {
 
 table {
   width: 100%;
-  min-width: 820px;
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 th,
 td {
   text-align: left;
-  padding: 18px 14px;
-  white-space: nowrap;
-  border-bottom: 1px solid rgba(125, 211, 252, 0.18);
+  padding: 16px 8px;
+  border-bottom: 1px solid rgba(125, 211, 252, 0.2);
+  color: #e5f3ff;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 th {
   color: #7dd3fc;
   font-weight: 900;
-  font-size: 18px;
+  font-size: 15px;
 }
 
 td {
-  color: #e5f3ff;
-  font-size: 18px;
+  font-size: 15px;
+}
+
+th:nth-child(1),
+td:nth-child(1) {
+  width: 19%;
+}
+
+th:nth-child(2),
+td:nth-child(2) {
+  width: 19%;
+}
+
+th:nth-child(3),
+td:nth-child(3) {
+  width: 17%;
+}
+
+th:nth-child(4),
+td:nth-child(4),
+th:nth-child(5),
+td:nth-child(5),
+th:nth-child(6),
+td:nth-child(6) {
+  width: 15%;
+}
+
+.table-card .badge {
+  font-size: 13px;
+  padding: 7px 10px;
 }
 
 .small {
@@ -301,36 +353,92 @@ td {
     padding: 22px;
   }
 
+  .status-strip {
+    font-size: 17px;
+  }
+
   .brand-row {
+    font-size: 30px;
     margin-bottom: 90px;
+  }
+
+  .snow-icon {
+    width: 58px;
+    height: 58px;
     font-size: 30px;
   }
 
+  .brand-tag,
+  .section-label,
+  .top-label {
+    font-size: 13px;
+    letter-spacing: 6px;
+  }
+
   h1 {
-    font-size: 56px;
+    font-size: 54px;
+    letter-spacing: -3px;
   }
 
   h2 {
-    font-size: 40px;
+    font-size: 34px;
+    letter-spacing: -1px;
   }
 
   .subtitle {
     font-size: 21px;
   }
 
+  .top-opportunity,
+  .forecast-card,
+  .table-card,
+  .risk-card {
+    padding: 26px 22px;
+    border-radius: 24px;
+  }
+
   .top-header,
   .table-head {
-    display: flex;
+    gap: 12px;
+  }
+
+  .top-pair {
+    font-size: 58px;
   }
 
   .setup-grid {
     grid-template-columns: 1fr;
   }
 
-  .table-card,
-  .top-opportunity,
-  .forecast-card,
-  .risk-card {
-    padding: 24px;
+  .metric {
+    padding: 22px;
+  }
+
+  .metric span {
+    font-size: 17px;
+  }
+
+  .metric strong {
+    font-size: 30px;
+  }
+
+  .update-pill {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  th,
+  td {
+    padding: 14px 6px;
+    font-size: 12px;
+  }
+
+  th {
+    font-size: 12px;
+  }
+
+  .table-card .badge {
+    font-size: 11px;
+    padding: 6px 8px;
   }
 }
