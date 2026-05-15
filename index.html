@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="ForexSnow is an AI assisted forex market dashboard that updates every 8 minutes with market rankings, trade setups, stop losses, and take profit exits." />
+  <meta name="theme-color" content="#07111f" />
+  <title>ForexSnow | Live AI Forex Snapshot</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="top-alert" id="statusBanner">
+    <strong>Status:</strong> Connecting to live ForexSnow engine.
+  </div>
+
+  <header class="site-header">
+    <nav class="nav">
+      <a class="brand" href="#">
+        <span class="brand-mark">❄</span>
+        <span>ForexSnow</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#dashboard">Dashboard</a>
+        <a href="#sources">Sources</a>
+        <a href="#risk">Risk</a>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <p class="eyebrow">AI assisted forex market snapshots</p>
+      <h1>Come play in the snow.</h1>
+      <p class="hero-copy">
+        ForexSnow refreshes every 8 minutes, scans market conditions, ranks forex opportunities, and builds AI assisted trade setup snapshots.
+      </p>
+
+      <div class="hero-actions">
+        <a class="btn primary" href="#dashboard">View Snapshot</a>
+        <button class="btn secondary" id="refreshBtn" type="button">Refresh Now</button>
+      </div>
+
+      <p class="last-update" id="lastUpdate">Waiting for first live snapshot.</p>
+    </section>
+  </header>
+
+  <main>
+    <section class="section" id="dashboard">
+      <div class="section-heading">
+        <p class="eyebrow">Live dashboard</p>
+        <h2>8 Minute ForexSnow Snapshot</h2>
+        <p id="marketThesis">
+          Pulling market thesis.
+        </p>
+      </div>
+
+      <div class="grid two">
+        <article class="card highlight">
+          <div class="card-kicker">Top opportunity</div>
+          <h3 id="topPair">Loading</h3>
+          <p class="bias" id="topBias">Waiting for analysis</p>
+
+          <div class="trade-grid">
+            <div>
+              <span>Entry Zone</span>
+              <strong id="entry">Loading</strong>
+            </div>
+            <div>
+              <span>Stop Loss</span>
+              <strong id="stop">Loading</strong>
+            </div>
+            <div>
+              <span>Take Profit Exit</span>
+              <strong id="take">Loading</strong>
+            </div>
+            <div>
+              <span>Get Out Point</span>
+              <strong id="exit">Loading</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-kicker">System read</div>
+          <h3>Update Engine</h3>
+          <p id="engineRead">
+            The backend updates market rankings every 8 minutes. If a source fails, the warning banner will show it.
+          </p>
+
+          <div class="meter">
+            <div class="meter-top">
+              <span>Top Confidence</span>
+              <strong id="confidence">0%</strong>
+            </div>
+            <div class="meter-bar">
+              <span id="meterFill"></span>
+            </div>
+          </div>
+
+          <div class="mini-status">
+            <span id="nextUpdate">Next update: calculating</span>
+            <span id="updateCount">Updates: 0</span>
+          </div>
+        </article>
+      </div>
+
+      <article class="card table-card">
+        <div class="table-header">
+          <div>
+            <div class="card-kicker">Rankings</div>
+            <h3>Opportunity Table</h3>
+          </div>
+          <button class="small-btn" id="manualTableRefresh" type="button">Refresh</button>
+        </div>
+
+        <div class="table-wrap">
+          <table aria-label="Forex opportunity rankings">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Pair</th>
+                <th>Bias</th>
+                <th>Confidence</th>
+                <th>Momentum</th>
+                <th>Volatility</th>
+                <th>Take Profit</th>
+                <th>Stop Loss</th>
+                <th>Risk Note</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="section" id="sources">
+      <div class="section-heading">
+        <p class="eyebrow">Transparency</p>
+        <h2>Rating Sources & Related Links</h2>
+        <p>
+          The score blends macro themes, momentum, volatility, news inputs, and source reliability warnings.
+        </p>
+      </div>
+
+      <div class="grid three" id="sourceGrid"></div>
+    </section>
+
+    <section class="section" id="risk">
+      <div class="risk-box">
+        <h2>Important Risk Notice</h2>
+        <p>
+          ForexSnow is for educational and informational purposes only. It does not provide financial advice, investment advice, or guaranteed trade signals. Forex trading involves substantial risk and can result in loss of capital. Always verify data with your broker and use proper risk management.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© <span id="year"></span> ForexSnow</span>
+    <span>Built for market snapshots, not guarantees.</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
