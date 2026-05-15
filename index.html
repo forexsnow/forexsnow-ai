@@ -243,12 +243,22 @@
     </section>
 
     <footer class="footer">
-      © 2026 ForexSnow AI • Live Snapshot Engine • Updated every 10 minutes
-    </footer>
+  © <span id="year"></span> ForexSnow AI • Live Snapshot Engine • Updated every <span id="refreshTime"></span>
+</footer>
 
   </main>
 
   <script src="app.js?v=9"></script>
+  
+<script>
+  const REFRESH_LABEL = "5 minutes";
 
+  document.getElementById("year").textContent =
+    new Date().getFullYear();
+
+  document.getElementById("refreshTime").textContent =
+    REFRESH_LABEL;
+</script>
+  
 </body>
 </html>
