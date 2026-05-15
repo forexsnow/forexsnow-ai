@@ -1,41 +1,69 @@
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #07111f;
+  background: radial-gradient(circle at top, #12345a, #07111f 45%, #030712);
   color: white;
 }
 
-.container {
-  padding: 28px;
-  max-width: 900px;
+.app {
+  max-width: 1100px;
   margin: auto;
+  padding: 28px;
+}
+
+.hero {
+  text-align: center;
+  padding: 36px 16px;
+}
+
+.logo {
+  font-size: 46px;
+}
+
+.eyebrow {
+  color: #38bdf8;
+  letter-spacing: 4px;
+  font-weight: bold;
 }
 
 h1 {
-  color: #38bdf8;
+  font-size: 44px;
+  margin: 10px 0;
+  color: #e0f2fe;
 }
 
 .subtitle {
-  color: #94a3b8;
+  color: #cbd5e1;
+  font-size: 18px;
 }
 
-.top-card, .card {
-  background: #111827;
-  border: 1px solid #1e293b;
-  border-radius: 16px;
-  padding: 20px;
-  margin-top: 18px;
+.status {
+  display: inline-block;
+  margin-top: 12px;
+  background: #082f49;
+  color: #7dd3fc;
+  padding: 8px 14px;
+  border-radius: 999px;
 }
 
-.grid {
-  display: grid;
-  gap: 14px;
+.top-card,
+.panel {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid #1e3a5f;
+  border-radius: 18px;
+  padding: 22px;
   margin-top: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+}
+
+.top-card h2 {
+  margin-top: 0;
+  color: #38bdf8;
 }
 
 .badge {
   display: inline-block;
-  padding: 6px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
   font-weight: bold;
 }
@@ -48,6 +76,32 @@ h1 {
 .bearish {
   background: #7f1d1d;
   color: #f87171;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 14px;
+}
+
+th {
+  text-align: left;
+  color: #7dd3fc;
+  border-bottom: 1px solid #334155;
+  padding: 12px;
+}
+
+td {
+  padding: 12px;
+  border-bottom: 1px solid #1e293b;
+}
+
+tr:hover {
+  background: rgba(56, 189, 248, 0.06);
 }
 
 .small {
