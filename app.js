@@ -105,3 +105,5 @@ function renderRows(targetId, rows) {
   `).join("");
 
 }
+document.getElementById("footerText").innerHTML =
+  `© ${new Date().getFullYear()} ForexSnow AI • Live Snapshot Engine • Updated every ${REFRESH_LABEL}`;
