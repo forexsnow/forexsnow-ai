@@ -14,8 +14,14 @@ body {
   font-size: 18px;
   line-height: 1.5;
 }
+
+.bearish-progress {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 22px rgba(248, 113, 113, 0.55);
+}
+
 .bearish-card {
-  border-color: #f87171;
+  border-color: #ef4444;
 }
 .status-strip strong {
   color: #eaf7ff;
