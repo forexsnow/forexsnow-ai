@@ -8,9 +8,9 @@ async function loadSnapshot() {
   document.getElementById("topPick").innerHTML = `
     <h2>Top Setup: ${top.pair}</h2>
 
-    <div class="badge ${top.bias.toLowerCase()}">
+    <p class="badge ${top.bias.toLowerCase()}">
       ${top.bias}
-    </div>
+    </p>
 
     <p><strong>Confidence:</strong> ${top.confidence}%</p>
 
@@ -20,43 +20,28 @@ async function loadSnapshot() {
 
     <p><strong>Stop Loss:</strong> ${top.stopLoss}</p>
 
-    <p class="small">
-      Updated: ${new Date(data.updatedAt).toLocaleTimeString()}
-    </p>
+    <p>${top.reason}</p>
   `;
 
   const rankings = document.getElementById("rankings");
 
-  rankings.innerHTML = "";
+  rankings.innerHTML = data.rankings.map(item => `
+    <div class="card">
+      <h3>#${item.rank} ${item.pair}</h3>
 
-  data.rankings.forEach(item => {
+      <p class="badge ${item.bias.toLowerCase()}">
+        ${item.bias}
+      </p>
 
-    rankings.innerHTML += `
-      <div class="card">
+      <p>Confidence: ${item.confidence}%</p>
 
-        <h3>
-          #${item.rank} ${item.pair}
-        </h3>
+      <p>Entry: ${item.entry}</p>
 
-        <div class="badge ${item.bias.toLowerCase()}">
-          ${item.bias}
-        </div>
+      <p>TP: ${item.takeProfit}</p>
 
-        <p><strong>Confidence:</strong> ${item.confidence}%</p>
-
-        <p><strong>Entry:</strong> ${item.entry}</p>
-
-        <p><strong>TP:</strong> ${item.takeProfit}</p>
-
-        <p><strong>SL:</strong> ${item.stopLoss}</p>
-
-        <p class="small">
-          ${item.reason}
-        </p>
-
-      </div>
-    `;
-  });
+      <p>SL: ${item.stopLoss}</p>
+    </div>
+  `).join("");
 
 }
 
