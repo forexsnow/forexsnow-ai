@@ -202,26 +202,23 @@ h1 {
   color: #f87171;
 }
 
+
 .table-wrap {
   overflow-x: auto;
+  width: 100%;
 }
 
 table {
   width: 100%;
-  border-collapse: collapse;
   min-width: 760px;
+  border-collapse: collapse;
 }
 
-th {
-  text-align: left;
-  color: #7dd3fc;
-  padding: 14px;
-  border-bottom: 1px solid #25506f;
-}
-
+th,
 td {
-  padding: 14px;
-  border-bottom: 1px solid #162f48;
+  text-align: left;
+  padding: 18px 14px;
+  white-space: nowrap;
 }
 
 .small {
