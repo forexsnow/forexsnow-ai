@@ -4,7 +4,7 @@ import cors from "cors";
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const REFRESH_MS = 10 * 60 * 1000;
+const REFRESH_MS = 5 * 60 * 1000;
 
 app.use(cors());
 app.use(express.json());
