@@ -1,7 +1,10 @@
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
   setInterval(loadSnapshot, 10000);
+  setInterval(updateProgressBar, 1000);
 });
+
+let refreshStarted = Date.now();
 
 async function loadSnapshot() {
   try {
@@ -15,6 +18,12 @@ async function loadSnapshot() {
 
     document.getElementById("marketThesis").textContent = data.marketThesis;
 
+    document.getElementById("forecastConfidence").textContent =
+      `${top.confidence}%`;
+
+    document.getElementById("updatePill").textContent =
+      `Updates: ${data.updateCount}`;
+
     document.getElementById("topPick").innerHTML = `
       <div class="top-header">
         <div>
@@ -25,12 +34,35 @@ async function loadSnapshot() {
       </div>
 
       <div class="setup-grid">
-        <div class="metric"><span>Confidence</span><strong>${top.confidence}%</strong></div>
-        <div class="metric"><span>Entry</span><strong>${top.entry}</strong></div>
-        <div class="metric"><span>Take Profit</span><strong>${top.takeProfit}</strong></div>
-        <div class="metric"><span>Stop Loss</span><strong>${top.stopLoss}</strong></div>
-        <div class="metric"><span>Exit Rule</span><strong>${top.getOutPoint}</strong></div>
-        <div class="metric"><span>Engine</span><strong>10 Min Refresh</strong></div>
+        <div class="metric">
+          <span>Confidence</span>
+          <strong>${top.confidence}%</strong>
+        </div>
+
+        <div class="metric">
+          <span>Entry Trigger</span>
+          <strong>${top.entry}</strong>
+        </div>
+
+        <div class="metric">
+          <span>Take Profit Exit</span>
+          <strong>${top.takeProfit}</strong>
+        </div>
+
+        <div class="metric">
+          <span>Get Out Point</span>
+          <strong>${top.getOutPoint}</strong>
+        </div>
+
+        <div class="metric">
+          <span>Stop Loss</span>
+          <strong>${top.stopLoss}</strong>
+        </div>
+
+        <div class="metric">
+          <span>Engine</span>
+          <strong>10 Min Refresh</strong>
+        </div>
       </div>
     `;
 
@@ -49,5 +81,20 @@ async function loadSnapshot() {
   } catch (error) {
     document.getElementById("topPick").innerHTML =
       "Snapshot failed to load. Check /api/snapshot.";
+  }
+}
+
+function updateProgressBar() {
+  const elapsed = Date.now() - refreshStarted;
+  const percent = Math.min((elapsed / 600000) * 100, 100);
+
+  const fill = document.getElementById("progressFill");
+
+  if (fill) {
+    fill.style.width = `${percent}%`;
+  }
+
+  if (percent >= 100) {
+    refreshStarted = Date.now();
   }
 }
