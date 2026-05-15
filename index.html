@@ -2,31 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ForexSnow AI</title>
-
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-  <div class="container">
+  <main class="app">
+    <header class="hero">
+      <div class="logo">❄️</div>
+      <p class="eyebrow">LET IT SNOW</p>
+      <h1>ForexSnow AI</h1>
+      <p class="subtitle">8 Minute AI Forex Snapshot Dashboard</p>
+      <p class="status">Live engine updating every 10 minutes</p>
+    </header>
 
-    <h1>ForexSnow AI ❄️</h1>
-
-    <p class="subtitle">
-      Automated Forex Intelligence Engine
-    </p>
-
-    <div class="top-card" id="topPick">
+    <section class="top-card" id="topPick">
       Loading top setup...
-    </div>
+    </section>
 
-    <div class="grid" id="rankings"></div>
-
-  </div>
+    <section class="panel">
+      <h2>Rankings</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Pair</th>
+              <th>Bias</th>
+              <th>Confidence</th>
+              <th>Entry</th>
+              <th>TP</th>
+              <th>SL</th>
+            </tr>
+          </thead>
+          <tbody id="rankings"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
 
   <script src="app.js"></script>
-
 </body>
 </html>
