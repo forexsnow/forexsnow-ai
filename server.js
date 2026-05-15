@@ -49,7 +49,6 @@ app.get("/health", (req, res) => {
     service: "ForexSnow AI backend"
   });
 });
-
 app.listen(PORT, () => {
-  console.log(\`Server running on port \${PORT}\`);
+console.log(`Server running on port ${PORT}`);
 });
