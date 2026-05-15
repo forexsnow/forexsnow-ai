@@ -1,19 +1,62 @@
 async function loadSnapshot() {
-  const response = await fetch("https://forexsnow-ai-production.up.railway.app/api/snapshot");
+  const response = await fetch("/api/snapshot");
   const data = await response.json();
 
   const top = data.topPick;
 
   document.getElementById("topPick").innerHTML = `
-    <h2>Top Setup: ${top.pair}</h2>
-    <p class="badge ${top.bias.toLowerCase()}">${top.bias}</p>
-    <p><strong>Confidence:</strong> ${top.confidence}%</p>
-    <p><strong>Entry:</strong> ${top.entry}</p>
-    <p><strong>Take Profit:</strong> ${top.takeProfit}</p>
-    <p><strong>Stop Loss:</strong> ${top.stopLoss}</p>
+    <div class="top-header">
+      <div>
+        <div class="top-label">Top Opportunity</div>
+        <h2 class="top-pair">${top.pair}</h2>
+        <span class="badge ${top.bias.toLowerCase()}">${top.bias}</span>
+      </div>
+
+      <div>
+        <p class="small">Updated</p>
+        <strong>${new Date(data.updatedAt).toLocaleTimeString()}</strong>
+      </div>
+    </div>
+
+    <div class="setup-grid">
+      <div class="metric">
+        <span>Confidence</span>
+        <strong>${top.confidence}%</strong>
+      </div>
+
+      <div class="metric">
+        <span>Entry</span>
+        <strong>${top.entry}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Exit Rule</span>
+        <strong>${top.getOutPoint}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Take Profit</span>
+        <strong>${top.takeProfit}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Stop Loss</span>
+        <strong>${top.stopLoss}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Engine</span>
+        <strong>10 Min Refresh</strong>
+      </div>
+    </div>
+
     <p class="small">${top.reason}</p>
-    <p class="small">Updated: ${new Date(data.updatedAt).toLocaleTimeString()}</p>
   `;
+
+  document.getElementById("marketThesis").textContent = data.marketThesis;
+
+  document.getElementById("lastRefresh").textContent =
+    `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
 
   document.getElementById("rankings").innerHTML = data.rankings.map(item => `
     <tr>
@@ -29,5 +72,4 @@ async function loadSnapshot() {
 }
 
 loadSnapshot();
-
 setInterval(loadSnapshot, 10000);
