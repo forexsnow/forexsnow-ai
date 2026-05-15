@@ -1,50 +1,57 @@
-function buildSnapshot() {
-  updateCount++;
+async function loadSnapshot() {
+  try {
+    const response = await fetch("https://forexsnow-ai-production.up.railway.app/api/snapshot");
+    const data = await response.json();
 
-  const rankings = pairs
-    .map(scorePair)
-    .sort((a, b) => {
-      const aBullish = a.bias === "Bullish";
-      const bBullish = b.bias === "Bullish";
+    const top = data.topPick;
 
-      if (aBullish && !bBullish) return -1;
-      if (!aBullish && bBullish) return 1;
+    document.getElementById("lastRefresh").textContent =
+      `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
 
-      return b.confidence - a.confidence;
-    })
-    .map((item, index) => ({
-      rank: index + 1,
-      ...item
-    }));
+    document.getElementById("topPick").innerHTML = `
+      <div class="top-header">
+        <div>
+          <div class="top-label">Top Opportunity</div>
+          <h2 class="top-pair">${top.pair}</h2>
+          <span class="badge ${top.bias.toLowerCase()}">${top.bias}</span>
+        </div>
+        <div>
+          <p class="small">Updated</p>
+          <strong>${new Date(data.updatedAt).toLocaleTimeString()}</strong>
+        </div>
+      </div>
 
-  snapshot = {
-    brand: "ForexSnow",
-    updatedAt: new Date().toISOString(),
-    nextUpdateAt: new Date(Date.now() + REFRESH_MS).toISOString(),
-    updateCount,
-    topPick: rankings[0],
-    rankings,
-    marketThesis:
-      "ForexSnow ranks bullish opportunities first by highest confidence, then bearish setups by confidence.",
-    sources: [
-      {
-        name: "Investing.com Forex",
-        url: "https://www.investing.com/currencies/"
-      },
-      {
-        name: "Forex Factory Calendar",
-        url: "https://www.forexfactory.com/calendar"
-      },
-      {
-        name: "Reuters Markets",
-        url: "https://www.reuters.com/markets/"
-      },
-      {
-        name: "TradingView Currencies",
-        url: "https://www.tradingview.com/markets/currencies/"
-      }
-    ]
-  };
+      <div class="setup-grid">
+        <div class="metric"><span>Confidence</span><strong>${top.confidence}%</strong></div>
+        <div class="metric"><span>Entry</span><strong>${top.entry}</strong></div>
+        <div class="metric"><span>Exit Rule</span><strong>${top.getOutPoint}</strong></div>
+        <div class="metric"><span>Take Profit</span><strong>${top.takeProfit}</strong></div>
+        <div class="metric"><span>Stop Loss</span><strong>${top.stopLoss}</strong></div>
+        <div class="metric"><span>Engine</span><strong>10 Min Refresh</strong></div>
+      </div>
 
-  console.log(`Snapshot updated #${updateCount}`);
+      <p class="small">${top.reason}</p>
+    `;
+
+    document.getElementById("marketThesis").textContent = data.marketThesis;
+
+    document.getElementById("rankings").innerHTML = data.rankings.map(item => `
+      <tr>
+        <td>#${item.rank}</td>
+        <td>${item.pair}</td>
+        <td><span class="badge ${item.bias.toLowerCase()}">${item.bias}</span></td>
+        <td>${item.confidence}%</td>
+        <td>${item.entry}</td>
+        <td>${item.takeProfit}</td>
+        <td>${item.stopLoss}</td>
+      </tr>
+    `).join("");
+
+  } catch (error) {
+    document.getElementById("topPick").innerHTML = "Snapshot failed to load. Refresh in a moment.";
+    console.error(error);
+  }
 }
+
+loadSnapshot();
+setInterval(loadSnapshot, 10000);
