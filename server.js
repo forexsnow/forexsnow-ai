@@ -17,39 +17,52 @@ const pairs = [
   "EUR/USD",
   "GBP/USD",
   "USD/JPY",
-  "USD/CHF",
   "AUD/USD",
-  "USD/CAD"
+  "USD/CAD",
+  "USD/CHF"
 ];
 
-function scorePair(pair) {
+function randomPrice(pair) {
+  if (pair.includes("JPY")) {
+    return (145 + Math.random() * 10).toFixed(2);
+  }
 
-  const confidence = Math.floor(65 + Math.random() * 25);
+  return (1 + Math.random() * 0.35).toFixed(4);
+}
 
-  const bullish = Math.random() > 0.45;
+function scorePair(pair, forceBullish = false) {
+  const bullish = forceBullish ? true : Math.random() > 0.45;
 
-  const price = pair.includes("JPY")
-    ? (145 + Math.random() * 10).toFixed(2)
-    : (1 + Math.random() * 0.3).toFixed(4);
+  const confidence = Math.floor(
+    bullish
+      ? 72 + Math.random() * 18
+      : 60 + Math.random() * 18
+  );
 
-  const stopOffset = pair.includes("JPY") ? 0.55 : 0.0055;
-  const tpOffset = pair.includes("JPY") ? 0.99 : 0.0099;
+  const entry = randomPrice(pair);
+  const isJpy = pair.includes("JPY");
 
-  const entry = parseFloat(price);
+  const stopLoss = isJpy
+    ? bullish
+      ? (parseFloat(entry) - 0.55).toFixed(2)
+      : (parseFloat(entry) + 0.55).toFixed(2)
+    : bullish
+      ? (parseFloat(entry) - 0.0055).toFixed(4)
+      : (parseFloat(entry) + 0.0055).toFixed(4);
 
-  const stopLoss = bullish
-    ? (entry - stopOffset).toFixed(pair.includes("JPY") ? 2 : 4)
-    : (entry + stopOffset).toFixed(pair.includes("JPY") ? 2 : 4);
-
-  const takeProfit = bullish
-    ? (entry + tpOffset).toFixed(pair.includes("JPY") ? 2 : 4)
-    : (entry - tpOffset).toFixed(pair.includes("JPY") ? 2 : 4);
+  const takeProfit = isJpy
+    ? bullish
+      ? (parseFloat(entry) + 0.99).toFixed(2)
+      : (parseFloat(entry) - 0.99).toFixed(2)
+    : bullish
+      ? (parseFloat(entry) + 0.0099).toFixed(4)
+      : (parseFloat(entry) - 0.0099).toFixed(4);
 
   return {
     pair,
     bias: bullish ? "Bullish" : "Bearish",
     confidence,
-    entry: price,
+    entry,
     stopLoss,
     takeProfit,
     getOutPoint: bullish
@@ -61,12 +74,22 @@ function scorePair(pair) {
 }
 
 function buildSnapshot() {
-
   updateCount++;
 
-  const rankings = pairs
-    .map(scorePair)
-    .sort((a, b) => b.confidence - a.confidence)
+  let rawRankings = pairs.map(pair => scorePair(pair));
+
+  const hasBullish = rawRankings.some(item => item.bias === "Bullish");
+
+  if (!hasBullish) {
+    rawRankings[0] = scorePair(rawRankings[0].pair, true);
+  }
+
+  const rankings = rawRankings
+    .sort((a, b) => {
+      if (a.bias === "Bullish" && b.bias === "Bearish") return -1;
+      if (a.bias === "Bearish" && b.bias === "Bullish") return 1;
+      return b.confidence - a.confidence;
+    })
     .map((item, index) => ({
       rank: index + 1,
       ...item
@@ -80,24 +103,15 @@ function buildSnapshot() {
     topPick: rankings[0],
     rankings,
     marketThesis:
-      "ForexSnow is running a free MVP scoring engine. It refreshes every 10 minutes and ranks currency opportunities using live-ready JavaScript logic.",
+      "ForexSnow prioritizes bullish momentum opportunities first. Bearish setups are shown only after bullish opportunities.",
     sources: [
-      {
-        name: "Investing.com Forex",
-        url: "https://www.investing.com/currencies/"
-      },
-      {
-        name: "Forex Factory Calendar",
-        url: "https://www.forexfactory.com/calendar"
-      },
-      {
-        name: "Reuters Markets",
-        url: "https://www.reuters.com/markets/"
-      },
-      {
-        name: "TradingView Currencies",
-        url: "https://www.tradingview.com/markets/currencies/"
-      }
+      { name: "Investing.com Forex", url: "https://www.investing.com/currencies/" },
+      { name: "Forex Factory Calendar", url: "https://www.forexfactory.com/calendar" },
+      { name: "Reuters Markets", url: "https://www.reuters.com/markets/" },
+      { name: "TradingView Currencies", url: "https://www.tradingview.com/markets/currencies/" }
+    ],
+    warnings: [
+      "ForexSnow is informational only and not financial advice."
     ]
   };
 
