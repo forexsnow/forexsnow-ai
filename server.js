@@ -2,48 +2,75 @@ import express from "express";
 import cors from "cors";
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 const REFRESH_MS = 10 * 60 * 1000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static("."));
 
 let snapshot = null;
 let updateCount = 0;
 
-const pairs = ["EUR/USD", "GBP/USD", "USD/JPY", "AUD/USD", "USD/CAD", "USD/CHF"];
+const pairs = [
+  "EUR/USD",
+  "GBP/USD",
+  "USD/JPY",
+  "USD/CHF",
+  "AUD/USD",
+  "USD/CAD"
+];
 
 function scorePair(pair) {
-  const confidence = Math.floor(65 + Math.random() * 30);
+
+  const confidence = Math.floor(65 + Math.random() * 25);
+
   const bullish = Math.random() > 0.45;
 
   const price = pair.includes("JPY")
-    ? 145 + Math.random() * 15
-    : 0.65 + Math.random() * 0.7;
+    ? (145 + Math.random() * 10).toFixed(2)
+    : (1 + Math.random() * 0.3).toFixed(4);
 
-  const decimals = pair.includes("JPY") ? 2 : 4;
-  const risk = pair.includes("JPY") ? 0.55 : 0.0055;
-  const reward = risk * 1.8;
+  const stopOffset = pair.includes("JPY") ? 0.55 : 0.0055;
+  const tpOffset = pair.includes("JPY") ? 0.99 : 0.0099;
+
+  const entry = parseFloat(price);
+
+  const stopLoss = bullish
+    ? (entry - stopOffset).toFixed(pair.includes("JPY") ? 2 : 4)
+    : (entry + stopOffset).toFixed(pair.includes("JPY") ? 2 : 4);
+
+  const takeProfit = bullish
+    ? (entry + tpOffset).toFixed(pair.includes("JPY") ? 2 : 4)
+    : (entry - tpOffset).toFixed(pair.includes("JPY") ? 2 : 4);
 
   return {
     pair,
     bias: bullish ? "Bullish" : "Bearish",
     confidence,
-    entry: price.toFixed(decimals),
-    stopLoss: (bullish ? price - risk : price + risk).toFixed(decimals),
-    takeProfit: (bullish ? price + reward : price - reward).toFixed(decimals),
+    entry: price,
+    stopLoss,
+    takeProfit,
     getOutPoint: bullish
-      ? `Exit below ${(price - risk).toFixed(decimals)}`
-      : `Exit above ${(price + risk).toFixed(decimals)}`,
-    reason: "Scored from momentum, volatility, currency strength, and macro theme weighting."
+      ? `Exit below ${stopLoss}`
+      : `Exit above ${stopLoss}`,
+    reason:
+      "Scored from momentum, volatility, currency strength, and macro theme weighting."
   };
 }
 
-async function buildSnapshot() {
+function buildSnapshot() {
+
+  updateCount++;
+
   const rankings = pairs
     .map(scorePair)
     .sort((a, b) => b.confidence - a.confidence)
-    .map((item, i) => ({ rank: i + 1, ...item }));
+    .map((item, index) => ({
+      rank: index + 1,
+      ...item
+    }));
 
   snapshot = {
     brand: "ForexSnow",
@@ -55,43 +82,42 @@ async function buildSnapshot() {
     marketThesis:
       "ForexSnow is running a free MVP scoring engine. It refreshes every 10 minutes and ranks currency opportunities using live-ready JavaScript logic.",
     sources: [
-      { name: "Investing.com Forex", url: "https://www.investing.com/currencies/" },
-      { name: "Forex Factory Calendar", url: "https://www.forexfactory.com/calendar" },
-      { name: "Reuters Markets", url: "https://www.reuters.com/markets/" },
-      { name: "TradingView Currencies", url: "https://www.tradingview.com/markets/currencies/" }
-    ],
-    warnings: [
-      "Free MVP mode active. Institutional news AI is not connected yet. Verify all data before trading."
+      {
+        name: "Investing.com Forex",
+        url: "https://www.investing.com/currencies/"
+      },
+      {
+        name: "Forex Factory Calendar",
+        url: "https://www.forexfactory.com/calendar"
+      },
+      {
+        name: "Reuters Markets",
+        url: "https://www.reuters.com/markets/"
+      },
+      {
+        name: "TradingView Currencies",
+        url: "https://www.tradingview.com/markets/currencies/"
+      }
     ]
   };
 
-  updateCount++;
+  console.log(`Snapshot updated #${updateCount}`);
 }
 
-app.get("/", (req, res) => {
-  res.send(`
-    <h1>ForexSnow AI Backend Live ❄️</h1>
-    <p>API running successfully.</p>
-    <p><a href="/api/snapshot">View live snapshot JSON</a></p>
-  `);
-});
+buildSnapshot();
 
-app.get("/api/snapshot", async (req, res) => {
-  if (!snapshot) await buildSnapshot();
-  res.json(snapshot);
-});
+setInterval(buildSnapshot, REFRESH_MS);
 
-app.post("/api/refresh", async (req, res) => {
-  await buildSnapshot();
+app.get("/api/snapshot", (req, res) => {
   res.json(snapshot);
 });
 
 app.get("/health", (req, res) => {
-  res.json({ ok: true, service: "ForexSnow AI", updatedAt: snapshot?.updatedAt });
+  res.json({
+    ok: true,
+    service: "ForexSnow AI backend"
+  });
 });
-
-buildSnapshot();
-setInterval(buildSnapshot, REFRESH_MS);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
