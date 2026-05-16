@@ -111,7 +111,23 @@ function renderTopCard(targetId, label, item) {
 }
 
 function renderRows(targetId, rows) {
-  document.getElementById(targetId).innerHTML = rows.map(item => `
+  const tableBody = document.getElementById(targetId);
+
+  if (!rows || rows.length === 0) {
+    const label = targetId.includes("bearish")
+      ? "No bearish signals active right now."
+      : "No bullish signals active right now.";
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="6">${label}</td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tableBody.innerHTML = rows.map(item => `
     <tr>
       <td>${item.pair}</td>
       <td>
