@@ -140,7 +140,7 @@ h1 {
 
 .copy-play-btn {
   position: absolute;
-  top: 78px;
+  top: 20px;
   right: 0;
 }
 
@@ -379,7 +379,7 @@ td {
 
 .copy-play-btn {
   position: absolute;
-  top: 92px;
+  top: 80px;
   right: 0;
   margin-top: 0;
 }
