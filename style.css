@@ -134,6 +134,16 @@ h1 {
   min-width: 0;
 }
 
+.top-header {
+  position: relative;
+}
+
+.copy-play-btn {
+  position: absolute;
+  top: 78px;
+  right: 0;
+}
+
 .top-label,
 .section-label {
   color: #7dd3fc;
@@ -369,7 +379,7 @@ td {
 
 .copy-play-btn {
   position: absolute;
-  top: 78px;
+  top: 92px;
   right: 0;
   margin-top: 0;
 }
