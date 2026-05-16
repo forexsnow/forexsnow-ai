@@ -103,7 +103,7 @@ function buildSnapshot() {
     topPick: rankings[0],
     rankings,
     marketThesis:
-      "ForexSnow prioritizes bullish momentum opportunities first. Bearish setups are shown only after bullish opportunities.",
+  "Bullish momentum currently leads overall market conditions.",
     sources: [
       { name: "Investing.com Forex", url: "https://www.investing.com/currencies/" },
       { name: "Forex Factory Calendar", url: "https://www.forexfactory.com/calendar" },
