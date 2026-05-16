@@ -111,7 +111,7 @@ function renderTopCard(targetId, label, item) {
 
   document.getElementById(targetId).innerHTML = `
     <div class="top-header">
-      <div>
+      <div class="top-left">
         <div class="top-label">${label}</div>
         <h2 class="top-pair">${item.pair}</h2>
         <span class="badge ${item.bias.toLowerCase()}">${item.bias}</span>
