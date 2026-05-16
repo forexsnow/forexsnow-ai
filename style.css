@@ -130,23 +130,9 @@ h1 {
   border-color: #38bdf8;
 }
 
-.top-header {
-  position: relative;
-}
-
-.copy-play-btn {
-  position: absolute;
-  top: 78px;
-  right: 0;
-}
-
 .top-left {
-
   min-width: 0;
-
 }
-
-
 
 .top-label,
 .section-label {
@@ -377,12 +363,15 @@ td {
   }
   
 .top-header {
-  flex-direction: column;
+  position: relative;
+  display: block;
 }
 
 .copy-play-btn {
-  align-self: flex-end;
-  margin-top: -52px;
+  position: absolute;
+  top: 78px;
+  right: 0;
+  margin-top: 0;
 }
   .brand-row {
     margin-bottom: 90px;
