@@ -316,7 +316,7 @@ function buildTradeSetup(pair, price, momentum, sourceMode) {
     96,
     Math.max(
       60,
-      Math.round(62 + strength * 120 + historyBoost)
+      Math.round(62 + strength * 70 + historyBoost)
     )
   );
 
@@ -540,34 +540,43 @@ async function buildSnapshot() {
   const setups = [];
   const sourceStatus = [];
 
-  for (const item of pairs) {
+  const pairResults = await Promise.all(
+  pairs.map(async item => {
     const result = await getPriceForPair(item);
 
-    sourceStatus.push({
-      pair: item.pair,
-      source: result.source,
-      live: result.live,
-      sourceMode: result.sourceMode,
-      error: result.error || null
-    });
+    return {
+      item,
+      result
+    };
+  })
+);
 
-    if (!result.price) {
-      continue;
-    }
+for (const { item, result } of pairResults) {
+  sourceStatus.push({
+    pair: item.pair,
+    source: result.source,
+    live: result.live,
+    sourceMode: result.sourceMode,
+    error: result.error || null
+  });
 
-    rememberPrice(item.pair, result.price);
-
-    const momentum = getMomentum(item.pair, result.price);
-
-    setups.push(
-      buildTradeSetup(
-        item.pair,
-        result.price,
-        momentum,
-        result.sourceMode
-      )
-    );
+  if (!result.price) {
+    continue;
   }
+
+  rememberPrice(item.pair, result.price);
+
+  const momentum = getMomentum(item.pair, result.price);
+
+  setups.push(
+    buildTradeSetup(
+      item.pair,
+      result.price,
+      momentum,
+      result.sourceMode
+    )
+  );
+}
 
   tradeHistory.forEach(snapshotEntry => {
     snapshotEntry.rankings?.forEach(play => {
