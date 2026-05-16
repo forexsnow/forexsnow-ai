@@ -241,7 +241,6 @@ function getHistoricalConfidenceBoost(pair) {
 
   return Math.min(6, difference);
 }
-
 function buildTradeSetup(
   pair,
   price,
@@ -327,9 +326,12 @@ function buildTradeSetup(
       bullish
         ? "Current price momentum supports upside continuation."
         : "Current price momentum shows downside pressure.",
-    sourceMode
+    sourceMode,
+    status: "OPEN",
+    createdAt: new Date().toISOString()
   };
 }
+
 
 async function getPriceForPair(item) {
   try {
