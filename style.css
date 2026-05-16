@@ -323,13 +323,18 @@ td {
   font-size: 16px;
   white-space: nowrap;
 }
+
 .copy-play-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 12px;
   border: 1px solid #1e4f7a;
-  background: linear-gradient(135deg, #0ea5e9, #67e8f9);
-  color: #04111f;
+  background: rgba(30, 64, 94, 0.65);
+  color: #b7d8ee;
   border-radius: 999px;
-  padding: 12px 18px;
-  font-weight: 900;
+  padding: 10px 16px;
+  font-weight: 800;
   font-size: 14px;
   cursor: pointer;
   white-space: nowrap;
@@ -338,6 +343,7 @@ td {
 .copy-play-btn:active {
   transform: scale(0.97);
 }
+
 @media (max-width: 700px) {
   .app {
     padding: 22px;
