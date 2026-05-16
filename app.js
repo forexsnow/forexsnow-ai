@@ -5,7 +5,6 @@ let nextRefreshAt = Date.now() + REFRESH_MS;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
-
   setInterval(loadSnapshot, REFRESH_MS);
   setInterval(updateRefreshCountdown, 1000);
 });
@@ -19,17 +18,12 @@ async function loadSnapshot() {
 
     const data = await response.json();
 
-if (!data || !data.rankings || !Array.isArray(data.rankings)) {
-  console.error("Invalid snapshot data:", data);
-  document.getElementById("marketThesis").textContent =
-    "Live snapshot is warming up. Please refresh again shortly.";
-  return;
-}
-
-window.latestSnapshot = data;
+    if (!data || !Array.isArray(data.rankings)) {
+      console.error("Invalid snapshot:", data);
+      return;
+    }
 
     window.latestSnapshot = data;
-
     nextRefreshAt = Date.now() + REFRESH_MS;
 
     const bullish = data.rankings
@@ -46,8 +40,7 @@ window.latestSnapshot = data;
     document.getElementById("lastRefresh").textContent =
       `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
 
-    document.getElementById("marketThesis").textContent =
-      data.marketThesis;
+    document.getElementById("marketThesis").textContent = data.marketThesis;
 
     document.getElementById("updatePill").textContent =
       `Updates: ${data.updateCount}`;
@@ -85,7 +78,7 @@ function renderTopCard(targetId, label, item) {
   if (!item) {
     document.getElementById(targetId).innerHTML = `
       <div class="top-label">${label}</div>
-      <p>No opportunities available right now.</p>
+      <p>No active setup right now.</p>
     `;
     return;
   }
@@ -101,7 +94,7 @@ function renderTopCard(targetId, label, item) {
 
     <div class="setup-grid">
       <div class="metric"><span>Confidence</span><strong>${item.confidence}%</strong></div>
-      <div class="metric"><span>Entry Trigger</span><strong>${item.entry}</strong></div>
+      <div class="metric"><span>Last Price</span><strong>${item.lastPrice || item.entry}</strong></div>
       <div class="metric"><span>Take Profit Exit</span><strong>${item.takeProfit}</strong></div>
       <div class="metric"><span>Get Out Point</span><strong>${item.getOutPoint}</strong></div>
       <div class="metric"><span>Stop Loss</span><strong>${item.stopLoss}</strong></div>
@@ -117,7 +110,7 @@ function renderRows(targetId, rows) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="6">
-          No active signals right now. ForexSnow is monitoring live market positioning.
+          No active signals right now. ForexSnow is monitoring market positioning.
         </td>
       </tr>
     `;
@@ -127,37 +120,15 @@ function renderRows(targetId, rows) {
   tableBody.innerHTML = rows.map(item => `
     <tr>
       <td>${item.pair}</td>
-
       <td>${item.lastPrice || item.entry}</td>
-
       <td>
         <span class="badge ${item.bias.toLowerCase()}">
           ${item.bias}
         </span>
       </td>
-
       <td>${item.confidence}%</td>
-
       <td>${item.takeProfit}</td>
-
       <td>${item.stopLoss}</td>
-    </tr>
-  `).join("");
-}
-
-  tableBody.innerHTML = rows.map(item => `
-    <tr>
-      <td>${item.pair}</td>
-
-      <td>${item.lastPrice || item.entry}</td>
-
-      <td>
-        <span class="badge ${item.bias.toLowerCase()}">
-          ${item.bias}
-        </span>
-      </td>
-
-      <td>${item.confidence}%</td>
     </tr>
   `).join("");
 }
@@ -166,11 +137,8 @@ function updateRefreshCountdown() {
   const marketOpen = window.latestSnapshot?.marketOpen;
   const reopenCountdown = window.latestSnapshot?.marketReopenCountdown;
 
-  const countdownElements =
-    document.querySelectorAll(".refreshCountdown");
-
-  const labelElements =
-    document.querySelectorAll(".refreshLabel");
+  const countdownElements = document.querySelectorAll(".refreshCountdown");
+  const labelElements = document.querySelectorAll(".refreshLabel");
 
   labelElements.forEach(label => {
     label.textContent = "Market Status";
@@ -178,30 +146,19 @@ function updateRefreshCountdown() {
 
   if (marketOpen === false) {
     countdownElements.forEach(item => {
-      item.textContent =
-        `Reopens in ${reopenCountdown || "soon"}`;
+      item.textContent = `Reopens in ${reopenCountdown || "soon"}`;
     });
-
     return;
   }
 
-  const remaining = Math.max(
-    0,
-    nextRefreshAt - Date.now()
-  );
-
+  const remaining = Math.max(0, nextRefreshAt - Date.now());
   const minutes = Math.floor(remaining / 60000);
-
-  const seconds = Math.floor(
-    (remaining % 60000) / 1000
-  )
+  const seconds = Math.floor((remaining % 60000) / 1000)
     .toString()
     .padStart(2, "0");
 
-  const label = `Refreshing in ${minutes}:${seconds}`;
-
   countdownElements.forEach(item => {
-    item.textContent = label;
+    item.textContent = `Refreshing in ${minutes}:${seconds}`;
   });
 }
 
