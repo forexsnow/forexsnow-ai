@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import fs from "fs";
 
 const app = express();
 
@@ -12,6 +13,20 @@ app.use(express.static("."));
 
 let snapshot = null;
 let updateCount = 0;
+
+let tradeHistory = [];
+
+try {
+  const raw = fs.readFileSync(
+    "./trade-history.json",
+    "utf-8"
+  );
+
+  tradeHistory = JSON.parse(raw);
+
+} catch {
+  tradeHistory = [];
+}
 
 const priceHistory = {};
 
@@ -54,15 +69,24 @@ function getMarketReopenCountdown() {
   }
 
   const diff = reopen - now;
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  const hours = Math.floor(
+    diff / (1000 * 60 * 60)
+  );
+
+  const minutes = Math.floor(
+    (diff % (1000 * 60 * 60)) /
+    (1000 * 60)
+  );
 
   return `${hours}h ${minutes}m`;
 }
 
 function safeNumber(value) {
   const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+  return Number.isFinite(number)
+    ? number
+    : null;
 }
 
 function fallbackPrice(pair) {
@@ -73,7 +97,10 @@ function fallbackPrice(pair) {
   return 1 + Math.random() * 0.35;
 }
 
-async function fetchWithTimeout(url, timeoutMs = 8000) {
+async function fetchWithTimeout(
+  url,
+  timeoutMs = 8000
+) {
   const controller = new AbortController();
 
   const timeout = setTimeout(() => {
@@ -89,23 +116,30 @@ async function fetchWithTimeout(url, timeoutMs = 8000) {
     });
 
     if (!response.ok) {
-      throw new Error(`Request failed: ${response.status}`);
+      throw new Error(
+        `Request failed: ${response.status}`
+      );
     }
 
     return await response.text();
+
   } finally {
     clearTimeout(timeout);
   }
 }
 
 async function fetchStooqPrice(symbol) {
-  const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=csv`;
+  const url =
+    `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=csv`;
 
   const csv = await fetchWithTimeout(url);
+
   const lines = csv.trim().split("\n");
 
   if (lines.length < 2) {
-    throw new Error("No quote data returned");
+    throw new Error(
+      "No quote data returned"
+    );
   }
 
   const headers = lines[0].split(",");
@@ -114,7 +148,9 @@ async function fetchStooqPrice(symbol) {
   const row = {};
 
   headers.forEach((header, index) => {
-    row[header.trim().toLowerCase()] = values[index];
+    row[
+      header.trim().toLowerCase()
+    ] = values[index];
   });
 
   const close =
@@ -123,7 +159,9 @@ async function fetchStooqPrice(symbol) {
     safeNumber(row.price);
 
   if (!close) {
-    throw new Error("Invalid quote price");
+    throw new Error(
+      "Invalid quote price"
+    );
   }
 
   return close;
@@ -139,85 +177,166 @@ function rememberPrice(pair, price) {
     price
   });
 
-  priceHistory[pair] = priceHistory[pair].filter(point => {
-    return Date.now() - point.time <= 60 * 60 * 1000;
-  });
+  priceHistory[pair] =
+    priceHistory[pair].filter(point => {
+      return (
+        Date.now() - point.time <=
+        60 * 60 * 1000
+      );
+    });
 }
 
 function getMomentum(pair, currentPrice) {
-  const history = priceHistory[pair] || [];
+  const history =
+    priceHistory[pair] || [];
 
   if (history.length < 2) {
-    return (Math.random() - 0.45) * 0.2;
+    return (
+      (Math.random() - 0.45) * 0.2
+    );
   }
 
   const oldest = history[0].price;
 
   if (!oldest) {
-    return (Math.random() - 0.45) * 0.2;
+    return (
+      (Math.random() - 0.45) * 0.2
+    );
   }
 
-  return ((currentPrice - oldest) / oldest) * 100;
+  return (
+    (
+      (currentPrice - oldest) /
+      oldest
+    ) * 100
+  );
 }
 
-function buildTradeSetup(pair, price, momentum, sourceMode) {
+function getHistoricalConfidenceBoost(pair) {
+  const relevantHistory =
+    tradeHistory.flatMap(
+      entry => entry.rankings || []
+    ).filter(
+      item => item.pair === pair
+    );
+
+  if (relevantHistory.length < 5) {
+    return 0;
+  }
+
+  const bullishCount =
+    relevantHistory.filter(
+      item => item.bias === "Bullish"
+    ).length;
+
+  const bearishCount =
+    relevantHistory.filter(
+      item => item.bias === "Bearish"
+    ).length;
+
+  const difference =
+    Math.abs(
+      bullishCount - bearishCount
+    );
+
+  return Math.min(6, difference);
+}
+
+function buildTradeSetup(
+  pair,
+  price,
+  momentum,
+  sourceMode
+) {
   const bullish = momentum >= 0;
-  const strength = Math.abs(momentum);
+
+  const strength =
+    Math.abs(momentum);
+
+  const historyBoost =
+    getHistoricalConfidenceBoost(pair);
 
   const confidence = Math.min(
-    92,
+    96,
     Math.max(
       60,
-      Math.round(62 + strength * 120)
+      Math.round(
+        62 +
+        strength * 120 +
+        historyBoost
+      )
     )
   );
 
-  const isJpy = pair.includes("JPY");
+  const isJpy =
+    pair.includes("JPY");
 
-  const stopDistance = isJpy ? 0.55 : 0.0055;
-  const targetDistance = isJpy ? 0.99 : 0.0099;
+  const stopDistance =
+    isJpy ? 0.55 : 0.0055;
 
-  const entry = isJpy
-    ? price.toFixed(2)
-    : price.toFixed(4);
+  const targetDistance =
+    isJpy ? 0.99 : 0.0099;
 
-  const stopLoss = isJpy
-    ? bullish
-      ? (price - stopDistance).toFixed(2)
-      : (price + stopDistance).toFixed(2)
-    : bullish
-      ? (price - stopDistance).toFixed(4)
-      : (price + stopDistance).toFixed(4);
+  const entry =
+    isJpy
+      ? price.toFixed(2)
+      : price.toFixed(4);
 
-  const takeProfit = isJpy
-    ? bullish
-      ? (price + targetDistance).toFixed(2)
-      : (price - targetDistance).toFixed(2)
-    : bullish
-      ? (price + targetDistance).toFixed(4)
-      : (price - targetDistance).toFixed(4);
+  const stopLoss =
+    isJpy
+      ? bullish
+        ? (price - stopDistance)
+            .toFixed(2)
+        : (price + stopDistance)
+            .toFixed(2)
+      : bullish
+        ? (price - stopDistance)
+            .toFixed(4)
+        : (price + stopDistance)
+            .toFixed(4);
+
+  const takeProfit =
+    isJpy
+      ? bullish
+        ? (price + targetDistance)
+            .toFixed(2)
+        : (price - targetDistance)
+            .toFixed(2)
+      : bullish
+        ? (price + targetDistance)
+            .toFixed(4)
+        : (price - targetDistance)
+            .toFixed(4);
 
   return {
-  pair,
-  lastPrice: entry,
-  bias: bullish ? "Bullish" : "Bearish",
+    pair,
+    lastPrice: entry,
+    bias:
+      bullish
+        ? "Bullish"
+        : "Bearish",
     confidence,
     entry,
     stopLoss,
     takeProfit,
-    getOutPoint: bullish
-      ? `Exit below ${stopLoss}`
-      : `Exit above ${stopLoss}`,
-    reason: bullish
-      ? "Current price momentum supports upside continuation."
-      : "Current price momentum shows downside pressure.",
+    getOutPoint:
+      bullish
+        ? `Exit below ${stopLoss}`
+        : `Exit above ${stopLoss}`,
+    reason:
+      bullish
+        ? "Current price momentum supports upside continuation."
+        : "Current price momentum shows downside pressure.",
     sourceMode
   };
 }
 
 async function getPriceForPair(item) {
   try {
-    const price = await fetchStooqPrice(item.symbol);
+    const price =
+      await fetchStooqPrice(
+        item.symbol
+      );
 
     return {
       price,
@@ -225,7 +344,9 @@ async function getPriceForPair(item) {
       live: true,
       sourceMode: "Live"
     };
+
   } catch (error) {
+
     return {
       price: fallbackPrice(item.pair),
       source: "Fallback Engine",
@@ -239,18 +360,29 @@ async function getPriceForPair(item) {
 async function buildSnapshot() {
   updateCount++;
 
-  const marketOpen = isForexMarketOpen();
-  const marketReopenCountdown = getMarketReopenCountdown();
+  const marketOpen =
+    isForexMarketOpen();
+
+  const marketReopenCountdown =
+    getMarketReopenCountdown();
 
   const setups = [];
   const sourceStatus = [];
 
   for (const item of pairs) {
-    const result = await getPriceForPair(item);
+    const result =
+      await getPriceForPair(item);
 
-    rememberPrice(item.pair, result.price);
+    rememberPrice(
+      item.pair,
+      result.price
+    );
 
-    const momentum = getMomentum(item.pair, result.price);
+    const momentum =
+      getMomentum(
+        item.pair,
+        result.price
+      );
 
     setups.push(
       buildTradeSetup(
@@ -265,115 +397,240 @@ async function buildSnapshot() {
       pair: item.pair,
       source: result.source,
       live: result.live,
-      error: result.error || null
+      error:
+        result.error || null
     });
   }
 
-  const rankings = setups
-    .sort((a, b) => {
-      if (a.bias === "Bullish" && b.bias === "Bearish") return -1;
-      if (a.bias === "Bearish" && b.bias === "Bullish") return 1;
-      return b.confidence - a.confidence;
-    })
-    .map((item, index) => ({
-      rank: index + 1,
-      ...item
-    }));
+  const rankings =
+    setups
+      .sort((a, b) => {
+        if (
+          a.bias === "Bullish" &&
+          b.bias === "Bearish"
+        ) return -1;
 
-  const bullishCount = rankings.filter(item => item.bias === "Bullish").length;
-  const bearishCount = rankings.filter(item => item.bias === "Bearish").length;
+        if (
+          a.bias === "Bearish" &&
+          b.bias === "Bullish"
+        ) return 1;
 
-  const liveCount = sourceStatus.filter(item => item.live).length;
-  const fallbackUsed = liveCount < sourceStatus.length;
+        return (
+          b.confidence -
+          a.confidence
+        );
+      })
+      .map((item, index) => ({
+        rank: index + 1,
+        ...item
+      }));
+
+  const bullishCount =
+    rankings.filter(
+      item => item.bias === "Bullish"
+    ).length;
+
+  const bearishCount =
+    rankings.filter(
+      item => item.bias === "Bearish"
+    ).length;
+
+  const liveCount =
+    sourceStatus.filter(
+      item => item.live
+    ).length;
+
+  const fallbackUsed =
+    liveCount <
+    sourceStatus.length;
 
   let marketThesis = "";
 
   if (!marketOpen) {
-    marketThesis = `Forex market currently closed. Snapshot engine standing by. Market reopens in ${marketReopenCountdown}.`;
-  } else if (bullishCount >= bearishCount) {
-    marketThesis = "Bullish momentum currently leads overall market conditions.";
+
+    marketThesis =
+      `Forex market currently closed. Snapshot engine standing by. Market reopens in ${marketReopenCountdown}.`;
+
+  } else if (
+    bullishCount >= bearishCount
+  ) {
+
+    marketThesis =
+      "Bullish momentum currently leads overall market conditions.";
+
   } else {
-    marketThesis = "Bearish pressure currently leads across select currency pairs.";
+
+    marketThesis =
+      "Bearish pressure currently leads across select currency pairs.";
   }
+
+  const historyEntry = {
+    timestamp:
+      new Date().toISOString(),
+    marketOpen,
+    rankings
+  };
+
+  tradeHistory.push(historyEntry);
+
+  if (tradeHistory.length > 5000) {
+    tradeHistory.shift();
+  }
+
+  fs.writeFileSync(
+    "./trade-history.json",
+    JSON.stringify(
+      tradeHistory,
+      null,
+      2
+    )
+  );
 
   snapshot = {
     brand: "ForexSnow",
-    updatedAt: new Date().toISOString(),
-    nextUpdateAt: new Date(Date.now() + REFRESH_MS).toISOString(),
+
+    updatedAt:
+      new Date().toISOString(),
+
+    nextUpdateAt:
+      new Date(
+        Date.now() + REFRESH_MS
+      ).toISOString(),
+
     marketOpen,
     marketReopenCountdown,
+
     updateCount,
+
+    totalHistoricalSnapshots:
+      tradeHistory.length,
+
     topPick: rankings[0],
+
     rankings,
+
     marketThesis,
+
     dataHealth: {
       live: liveCount > 0,
       marketOpen,
       marketReopenCountdown,
-      primarySource: "Stooq",
+
+      primarySource:
+        "Stooq",
+
       fallbackUsed,
+
       livePairs: liveCount,
-      totalPairs: sourceStatus.length,
-      checkedAt: new Date().toISOString(),
-      message: !marketOpen
-        ? `Forex market currently closed. Reopens in ${marketReopenCountdown}.`
-        : fallbackUsed
-          ? "Some live data was delayed. ForexSnow used backup pricing to keep the snapshot active."
-          : "Live market data active.",
+
+      totalPairs:
+        sourceStatus.length,
+
+      checkedAt:
+        new Date().toISOString(),
+
+      message:
+        !marketOpen
+          ? `Forex market currently closed. Reopens in ${marketReopenCountdown}.`
+          : fallbackUsed
+            ? "Some live data was delayed. ForexSnow used backup pricing to keep the snapshot active."
+            : "Live market data active.",
+
       sourceStatus
     },
+
+    memory: {
+      historicalSnapshots:
+        tradeHistory.length,
+
+      learningActive: true
+    },
+
     sources: [
       {
-        name: "Stooq FX Quotes",
-        url: "https://stooq.com"
+        name:
+          "Stooq FX Quotes",
+        url:
+          "https://stooq.com"
       },
       {
-        name: "Backup Pricing Engine",
-        url: "Internal fallback"
+        name:
+          "Backup Pricing Engine",
+        url:
+          "Internal fallback"
       },
       {
-        name: "Investing.com Forex",
-        url: "https://www.investing.com/currencies/"
+        name:
+          "Investing.com Forex",
+        url:
+          "https://www.investing.com/currencies/"
       },
       {
-        name: "Forex Factory Calendar",
-        url: "https://www.forexfactory.com/calendar"
+        name:
+          "Forex Factory Calendar",
+        url:
+          "https://www.forexfactory.com/calendar"
       },
       {
-        name: "Reuters Markets",
-        url: "https://www.reuters.com/markets/"
+        name:
+          "Reuters Markets",
+        url:
+          "https://www.reuters.com/markets/"
       },
       {
-        name: "TradingView Currencies",
-        url: "https://www.tradingview.com/markets/currencies/"
+        name:
+          "TradingView Currencies",
+        url:
+          "https://www.tradingview.com/markets/currencies/"
       }
     ],
+
     warnings: [
       "ForexSnow is informational only and not financial advice."
     ]
   };
 
-  console.log(`Snapshot updated #${updateCount}`);
+  console.log(
+    `Snapshot updated #${updateCount}`
+  );
 }
 
 buildSnapshot();
 
-setInterval(buildSnapshot, REFRESH_MS);
+setInterval(
+  buildSnapshot,
+  REFRESH_MS
+);
 
-app.get("/api/snapshot", (req, res) => {
-  res.json(snapshot);
-});
+app.get(
+  "/api/snapshot",
+  (req, res) => {
+    res.json(snapshot);
+  }
+);
 
-app.get("/health", (req, res) => {
-  res.json({
-    ok: true,
-    service: "ForexSnow AI backend",
-    refreshMs: REFRESH_MS,
-    hasSnapshot: Boolean(snapshot),
-    marketOpen: snapshot?.marketOpen ?? null
-  });
-});
+app.get(
+  "/health",
+  (req, res) => {
+    res.json({
+      ok: true,
+      service:
+        "ForexSnow AI backend",
+      refreshMs:
+        REFRESH_MS,
+      hasSnapshot:
+        Boolean(snapshot),
+      marketOpen:
+        snapshot?.marketOpen ??
+        null,
+      historicalSnapshots:
+        tradeHistory.length
+    });
+  }
+);
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(
+    `Server running on port ${PORT}`
+  );
 });
