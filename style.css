@@ -132,8 +132,8 @@ h1 {
 
 .top-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 16px;
 }
 
@@ -325,10 +325,7 @@ td {
 }
 
 .copy-play-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 12px;
+  margin-top: 6px;
   border: 1px solid #1e4f7a;
   background: rgba(30, 64, 94, 0.65);
   color: #b7d8ee;
