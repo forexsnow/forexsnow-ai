@@ -377,7 +377,15 @@ td {
   .app {
     padding: 22px;
   }
+  
+.top-header {
+  flex-direction: column;
+}
 
+.copy-play-btn {
+  align-self: flex-end;
+  margin-top: -52px;
+}
   .brand-row {
     margin-bottom: 90px;
     font-size: 30px;
