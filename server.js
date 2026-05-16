@@ -89,12 +89,18 @@ function safeNumber(value) {
     : null;
 }
 
-function fallbackPrice(pair) {
-  if (pair.includes("JPY")) {
-    return 145 + Math.random() * 10;
+function getLastKnownPrice(pair) {
+  const historicalPrices = tradeHistory
+    .flatMap(entry => entry.rankings || [])
+    .filter(item => item.pair === pair && item.lastPrice)
+    .map(item => Number(item.lastPrice))
+    .filter(price => Number.isFinite(price));
+
+  if (historicalPrices.length === 0) {
+    return null;
   }
 
-  return 1 + Math.random() * 0.35;
+  return historicalPrices[historicalPrices.length - 1];
 }
 
 async function fetchWithTimeout(
@@ -478,13 +484,21 @@ async function getPriceForPair(item) {
 
   } catch (error) {
 
-    return {
-      price: fallbackPrice(item.pair),
-      source: "Fallback Engine",
-      live: false,
-      sourceMode: "Fallback",
-      error: error.message
-    };
+    const lastKnownPrice = getLastKnownPrice(item.pair);
+
+if (!lastKnownPrice) {
+  throw new Error(
+    `No live or historical price available for ${item.pair}`
+  );
+}
+
+return {
+  price: lastKnownPrice,
+  source: "Last Known Market Price",
+  live: false,
+  sourceMode: "Last Known",
+  error: error.message
+};
   }
 }
 
