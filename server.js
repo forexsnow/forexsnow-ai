@@ -198,8 +198,9 @@ function buildTradeSetup(pair, price, momentum, sourceMode) {
       : (price - targetDistance).toFixed(4);
 
   return {
-    pair,
-    bias: bullish ? "Bullish" : "Bearish",
+  pair,
+  lastPrice: entry,
+  bias: bullish ? "Bullish" : "Bearish",
     confidence,
     entry,
     stopLoss,
