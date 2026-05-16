@@ -241,6 +241,7 @@ function getHistoricalConfidenceBoost(pair) {
 
   return Math.min(6, difference);
 }
+
 function buildTradeSetup(
   pair,
   price,
@@ -332,6 +333,42 @@ function buildTradeSetup(
   };
 }
 
+function evaluateTradeOutcome(play, latestPrice) {
+  if (play.status !== "OPEN") {
+    return play;
+  }
+
+  const bullish = play.bias === "Bullish";
+
+  const takeProfit = Number(play.takeProfit);
+  const stopLoss = Number(play.stopLoss);
+  const current = Number(latestPrice);
+
+  if (!Number.isFinite(takeProfit) || !Number.isFinite(stopLoss) || !Number.isFinite(current)) {
+    return play;
+  }
+
+  if (bullish) {
+    if (current >= takeProfit) {
+      play.status = "WIN";
+    } else if (current <= stopLoss) {
+      play.status = "LOSS";
+    }
+  } else {
+    if (current <= takeProfit) {
+      play.status = "WIN";
+    } else if (current >= stopLoss) {
+      play.status = "LOSS";
+    }
+  }
+
+  if (play.status !== "OPEN") {
+    play.closedAt = new Date().toISOString();
+    play.resultPrice = latestPrice;
+  }
+
+  return play;
+}
 
 async function getPriceForPair(item) {
   try {
@@ -404,6 +441,21 @@ async function buildSnapshot() {
     });
   }
 
+  tradeHistory.forEach(snapshotEntry => {
+  snapshotEntry.rankings?.forEach(play => {
+    const matching = setups.find(
+      item => item.pair === play.pair
+    );
+
+    if (matching) {
+      evaluateTradeOutcome(
+        play,
+        matching.lastPrice
+      );
+    }
+  });
+});
+  
   const rankings =
     setups
       .sort((a, b) => {
