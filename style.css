@@ -131,15 +131,13 @@ h1 {
 }
 
 .top-header {
+  position: relative;
+}
 
-  display: flex;
-
-  align-items: flex-start;
-
-  justify-content: space-between;
-
-  gap: 16px;
-
+.copy-play-btn {
+  position: absolute;
+  top: 78px;
+  right: 0;
 }
 
 .top-left {
