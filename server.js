@@ -7,7 +7,10 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const REFRESH_MS = 5 * 60 * 1000;
 const HISTORY_FILE = "./trade-history.json";
+
 const TWELVEDATA_API_KEY = process.env.TWELVEDATA_API_KEY || "";
+const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || "";
+const POLYGON_API_KEY = process.env.POLYGON_API_KEY || "";
 
 app.use(cors());
 app.use(express.json());
@@ -27,16 +30,16 @@ try {
 const priceHistory = {};
 
 const pairs = [
-  { pair: "EUR/USD", stooqSymbol: "eurusd", twelveSymbol: "EUR/USD" },
-  { pair: "GBP/USD", stooqSymbol: "gbpusd", twelveSymbol: "GBP/USD" },
-  { pair: "USD/JPY", stooqSymbol: "usdjpy", twelveSymbol: "USD/JPY" },
-  { pair: "AUD/USD", stooqSymbol: "audusd", twelveSymbol: "AUD/USD" },
-  { pair: "USD/CAD", stooqSymbol: "usdcad", twelveSymbol: "USD/CAD" },
-  { pair: "USD/CHF", stooqSymbol: "usdchf", twelveSymbol: "USD/CHF" },
-  { pair: "NZD/USD", stooqSymbol: "nzdusd", twelveSymbol: "NZD/USD" },
-  { pair: "GBP/JPY", stooqSymbol: "gbpjpy", twelveSymbol: "GBP/JPY" },
-  { pair: "EUR/JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY" },
-  { pair: "EUR/AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD" }
+  { pair: "EUR/USD", base: "EUR", quote: "USD", stooqSymbol: "eurusd", twelveSymbol: "EUR/USD", polygonSymbol: "C:EURUSD" },
+  { pair: "GBP/USD", base: "GBP", quote: "USD", stooqSymbol: "gbpusd", twelveSymbol: "GBP/USD", polygonSymbol: "C:GBPUSD" },
+  { pair: "USD/JPY", base: "USD", quote: "JPY", stooqSymbol: "usdjpy", twelveSymbol: "USD/JPY", polygonSymbol: "C:USDJPY" },
+  { pair: "AUD/USD", base: "AUD", quote: "USD", stooqSymbol: "audusd", twelveSymbol: "AUD/USD", polygonSymbol: "C:AUDUSD" },
+  { pair: "USD/CAD", base: "USD", quote: "CAD", stooqSymbol: "usdcad", twelveSymbol: "USD/CAD", polygonSymbol: "C:USDCAD" },
+  { pair: "USD/CHF", base: "USD", quote: "CHF", stooqSymbol: "usdchf", twelveSymbol: "USD/CHF", polygonSymbol: "C:USDCHF" },
+  { pair: "NZD/USD", base: "NZD", quote: "USD", stooqSymbol: "nzdusd", twelveSymbol: "NZD/USD", polygonSymbol: "C:NZDUSD" },
+  { pair: "GBP/JPY", base: "GBP", quote: "JPY", stooqSymbol: "gbpjpy", twelveSymbol: "GBP/JPY", polygonSymbol: "C:GBPJPY" },
+  { pair: "EUR/JPY", base: "EUR", quote: "JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY", polygonSymbol: "C:EURJPY" },
+  { pair: "EUR/AUD", base: "EUR", quote: "AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD", polygonSymbol: "C:EURAUD" }
 ];
 
 function isForexMarketOpen() {
@@ -92,12 +95,31 @@ function getLastKnownPrice(pair) {
   return historicalPrices[historicalPrices.length - 1];
 }
 
-async function fetchWithTimeout(url, timeoutMs = 8000) {
+async function fetchJson(url, timeoutMs = 8000) {
   const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-  const timeout = setTimeout(() => {
-    controller.abort();
-  }, timeoutMs);
+  try {
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "ForexSnow/1.0"
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Request failed: ${response.status}`);
+    }
+
+    return await response.json();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchText(url, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(url, {
@@ -125,8 +147,7 @@ async function fetchTwelveDataPrice(symbol) {
   const url =
     `https://api.twelvedata.com/price?symbol=${encodeURIComponent(symbol)}&apikey=${TWELVEDATA_API_KEY}`;
 
-  const raw = await fetchWithTimeout(url);
-  const data = JSON.parse(raw);
+  const data = await fetchJson(url);
 
   if (data.status === "error") {
     throw new Error(data.message || "TwelveData error");
@@ -141,10 +162,65 @@ async function fetchTwelveDataPrice(symbol) {
   return price;
 }
 
+async function fetchFinnhubPrice(base, quote) {
+  if (!FINNHUB_API_KEY) {
+    throw new Error("Missing FINNHUB_API_KEY");
+  }
+
+  const url =
+    `https://finnhub.io/api/v1/forex/rates?base=${encodeURIComponent(base)}&token=${FINNHUB_API_KEY}`;
+
+  const data = await fetchJson(url);
+
+  const price = safeNumber(data?.quote?.[quote]);
+
+  if (!price) {
+    throw new Error("Invalid Finnhub price");
+  }
+
+  return price;
+}
+
+async function fetchPolygonPrice(symbol) {
+  if (!POLYGON_API_KEY) {
+    throw new Error("Missing POLYGON_API_KEY");
+  }
+
+  const url =
+    `https://api.polygon.io/v2/snapshot/locale/global/markets/forex/tickers/${encodeURIComponent(symbol)}?apiKey=${POLYGON_API_KEY}`;
+
+  const data = await fetchJson(url);
+
+  const ticker = data?.ticker || data?.results || data;
+
+  const bid = safeNumber(ticker?.lastQuote?.b);
+  const ask = safeNumber(ticker?.lastQuote?.a);
+  const last = safeNumber(ticker?.lastTrade?.p);
+  const dayClose = safeNumber(ticker?.day?.c);
+  const prevClose = safeNumber(ticker?.prevDay?.c);
+
+  const mid =
+    bid && ask
+      ? (bid + ask) / 2
+      : null;
+
+  const price =
+    mid ||
+    last ||
+    dayClose ||
+    prevClose;
+
+  if (!price) {
+    throw new Error("Invalid Polygon price");
+  }
+
+  return price;
+}
+
 async function fetchStooqPrice(symbol) {
   const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=csv`;
 
-  const csv = await fetchWithTimeout(url);
+  const csv = await fetchText(url);
   const lines = csv.trim().split("\n");
 
   if (lines.length < 2) {
@@ -291,7 +367,6 @@ function evaluateTradeOutcome(play, latestPrice) {
   if (play.status !== "OPEN") return play;
 
   const bullish = play.bias === "Bullish";
-
   const takeProfit = Number(play.takeProfit);
   const stopLoss = Number(play.stopLoss);
   const current = Number(latestPrice);
@@ -397,6 +472,32 @@ async function getPriceForPair(item) {
   }
 
   try {
+    const price = await fetchFinnhubPrice(item.base, item.quote);
+
+    return {
+      price,
+      source: "Finnhub",
+      live: true,
+      sourceMode: "Secondary"
+    };
+  } catch (error) {
+    errors.push(`Finnhub: ${error.message}`);
+  }
+
+  try {
+    const price = await fetchPolygonPrice(item.polygonSymbol);
+
+    return {
+      price,
+      source: "Polygon",
+      live: true,
+      sourceMode: "Tertiary"
+    };
+  } catch (error) {
+    errors.push(`Polygon: ${error.message}`);
+  }
+
+  try {
     const price = await fetchStooqPrice(item.stooqSymbol);
 
     return {
@@ -494,6 +595,8 @@ async function buildSnapshot() {
 
   const liveCount = sourceStatus.filter(item => item.live).length;
   const primaryCount = sourceStatus.filter(item => item.source === "TwelveData").length;
+  const secondaryCount = sourceStatus.filter(item => item.source === "Finnhub").length;
+  const tertiaryCount = sourceStatus.filter(item => item.source === "Polygon").length;
   const backupCount = sourceStatus.filter(item => item.source === "Stooq").length;
   const availableCount = rankings.length;
   const unavailableCount = sourceStatus.length - availableCount;
@@ -552,8 +655,12 @@ async function buildSnapshot() {
       marketOpen,
       marketReopenCountdown,
       primarySource: "TwelveData",
+      secondarySource: "Finnhub",
+      tertiarySource: "Polygon",
       backupSource: "Stooq",
       primaryPairs: primaryCount,
+      secondaryPairs: secondaryCount,
+      tertiaryPairs: tertiaryCount,
       backupPairs: backupCount,
       lastKnownUsed,
       livePairs: liveCount,
@@ -563,15 +670,17 @@ async function buildSnapshot() {
       checkedAt: new Date().toISOString(),
       message: !marketOpen
         ? `Forex market currently closed. Reopens in ${marketReopenCountdown}.`
-        : primaryCount > 0 && backupCount === 0 && !lastKnownUsed
+        : primaryCount > 0 && secondaryCount === 0 && tertiaryCount === 0 && backupCount === 0 && !lastKnownUsed
           ? "Primary market data active."
           : lastKnownUsed
             ? "Some live data was delayed. ForexSnow used last known market prices where needed."
-            : backupCount > 0
-              ? "Primary data partially delayed. Backup market data active."
-              : liveCount > 0
-                ? "Live market data active."
-                : "Live market data temporarily unavailable.",
+            : secondaryCount > 0 || tertiaryCount > 0
+              ? "Primary data partially delayed. Secondary market data active."
+              : backupCount > 0
+                ? "Primary data delayed. Backup market data active."
+                : liveCount > 0
+                  ? "Live market data active."
+                  : "Live market data temporarily unavailable.",
       sourceStatus
     },
     memory: {
@@ -585,28 +694,20 @@ async function buildSnapshot() {
         url: "https://twelvedata.com"
       },
       {
+        name: "Finnhub FX Rates",
+        url: "https://finnhub.io"
+      },
+      {
+        name: "Polygon Forex Market Data",
+        url: "https://polygon.io"
+      },
+      {
         name: "Stooq FX Quotes",
         url: "https://stooq.com"
       },
       {
         name: "Last Known Market Price",
         url: "Internal memory"
-      },
-      {
-        name: "Investing.com Forex",
-        url: "https://www.investing.com/currencies/"
-      },
-      {
-        name: "Forex Factory Calendar",
-        url: "https://www.forexfactory.com/calendar"
-      },
-      {
-        name: "Reuters Markets",
-        url: "https://www.reuters.com/markets/"
-      },
-      {
-        name: "TradingView Currencies",
-        url: "https://www.tradingview.com/markets/currencies/"
       }
     ],
     warnings: [
@@ -634,6 +735,8 @@ app.get("/health", (req, res) => {
     marketOpen: snapshot?.marketOpen ?? null,
     historicalSnapshots: tradeHistory.length,
     primarySource: "TwelveData",
+    secondarySource: "Finnhub",
+    tertiarySource: "Polygon",
     backupSource: "Stooq"
   });
 });
