@@ -19,6 +19,15 @@ async function loadSnapshot() {
 
     const data = await response.json();
 
+if (!data || !data.rankings || !Array.isArray(data.rankings)) {
+  console.error("Invalid snapshot data:", data);
+  document.getElementById("marketThesis").textContent =
+    "Live snapshot is warming up. Please refresh again shortly.";
+  return;
+}
+
+window.latestSnapshot = data;
+
     window.latestSnapshot = data;
 
     nextRefreshAt = Date.now() + REFRESH_MS;
