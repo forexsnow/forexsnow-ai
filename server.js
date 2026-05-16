@@ -212,36 +212,55 @@ function getMomentum(pair, currentPrice) {
   );
 }
 
-function getHistoricalConfidenceBoost(pair) {
-  const relevantHistory =
-    tradeHistory.flatMap(
-      entry => entry.rankings || []
-    ).filter(
-      item => item.pair === pair
-    );
+function getConfidenceEvolutionAdjustment(pair, bias) {
+  const historicalPlays = tradeHistory
+    .flatMap(entry => entry.rankings || [])
+    .filter(play => {
+      return (
+        play.pair === pair &&
+        play.bias === bias &&
+        (
+          play.status === "WIN" ||
+          play.status === "LOSS"
+        )
+      );
+    });
 
-  if (relevantHistory.length < 5) {
+  if (historicalPlays.length < 5) {
     return 0;
   }
 
-  const bullishCount =
-    relevantHistory.filter(
-      item => item.bias === "Bullish"
+  const wins =
+    historicalPlays.filter(
+      play => play.status === "WIN"
     ).length;
 
-  const bearishCount =
-    relevantHistory.filter(
-      item => item.bias === "Bearish"
+  const losses =
+    historicalPlays.filter(
+      play => play.status === "LOSS"
     ).length;
 
-  const difference =
-    Math.abs(
-      bullishCount - bearishCount
-    );
+  const winRate =
+    wins / historicalPlays.length;
 
-  return Math.min(6, difference);
+  if (winRate >= 0.7) {
+    return 6;
+  }
+
+  if (winRate >= 0.6) {
+    return 3;
+  }
+
+  if (winRate <= 0.35) {
+    return -6;
+  }
+
+  if (winRate <= 0.45) {
+    return -3;
+  }
+
+  return 0;
 }
-
 function buildTradeSetup(
   pair,
   price,
@@ -253,9 +272,12 @@ function buildTradeSetup(
   const strength =
     Math.abs(momentum);
 
-  const historyBoost =
-    getHistoricalConfidenceBoost(pair);
-
+const historyBoost =
+  getConfidenceEvolutionAdjustment(
+    pair,
+    bullish ? "Bullish" : "Bearish"
+  );
+  
   const confidence = Math.min(
     96,
     Math.max(
