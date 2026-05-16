@@ -1,4 +1,5 @@
 const REFRESH_LABEL = "5 Min Refresh";
+
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
   setInterval(loadSnapshot, 10000);
@@ -27,7 +28,8 @@ async function loadSnapshot() {
     document.getElementById("lastRefresh").textContent =
       `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
 
-    document.getElementById("marketThesis").textContent = data.marketThesis;
+    document.getElementById("marketThesis").textContent =
+      data.marketThesis;
 
     document.getElementById("updatePill").textContent =
       `Updates: ${data.updateCount}`;
@@ -48,8 +50,17 @@ async function loadSnapshot() {
         `${bearishTop.confidence}%`;
     }
 
-    renderTopCard("bullishTopPick", "Bullish Top Opportunity", bullishTop);
-    renderTopCard("bearishTopPick", "Bearish Top Opportunity", bearishTop);
+    renderTopCard(
+      "bullishTopPick",
+      "Bullish Top Opportunity",
+      bullishTop
+    );
+
+    renderTopCard(
+      "bearishTopPick",
+      "Bearish Top Opportunity",
+      bearishTop
+    );
 
     renderRows("bullishRankings", bullish);
     renderRows("bearishRankings", bearish);
@@ -60,50 +71,97 @@ async function loadSnapshot() {
 }
 
 function renderTopCard(targetId, label, item) {
+
   if (!item) {
+
     document.getElementById(targetId).innerHTML = `
       <div class="top-label">${label}</div>
       <p>No opportunities available right now.</p>
     `;
+
     return;
   }
 
   document.getElementById(targetId).innerHTML = `
     <div class="top-header">
+
       <div>
+
         <div class="top-label">${label}</div>
+
         <h2 class="top-pair">${item.pair}</h2>
-        <span class="badge ${item.bias.toLowerCase()}">${item.bias}</span>
+
+        <span class="badge ${item.bias.toLowerCase()}">
+          ${item.bias}
+        </span>
+
       </div>
+
     </div>
 
     <div class="setup-grid">
-      <div class="metric"><span>Confidence</span><strong>${item.confidence}%</strong></div>
-      <div class="metric"><span>Entry Trigger</span><strong>${item.entry}</strong></div>
-      <div class="metric"><span>Take Profit Exit</span><strong>${item.takeProfit}</strong></div>
-      <div class="metric"><span>Get Out Point</span><strong>${item.getOutPoint}</strong></div>
-      <div class="metric"><span>Stop Loss</span><strong>${item.stopLoss}</strong></div>
-      <div class="metric"><span>Engine</span><strong>${REFRESH_LABEL}</strong></div>
+
+      <div class="metric">
+        <span>Confidence</span>
+        <strong>${item.confidence}%</strong>
+      </div>
+
+      <div class="metric">
+        <span>Entry Trigger</span>
+        <strong>${item.entry}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Take Profit Exit</span>
+        <strong>${item.takeProfit}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Get Out Point</span>
+        <strong>${item.getOutPoint}</strong>
+      </div>
+
+      <div class="metric">
+        <span>Stop Loss</span>
+        <strong>${item.stopLoss}</strong>
+      </div>
+
+      <div class="metric">
+        <span>AI Refresh Cycle</span>
+        <strong>${REFRESH_LABEL}</strong>
+      </div>
+
     </div>
   `;
 }
 
 function renderRows(targetId, rows) {
-  document.getElementById(targetId).innerHTML = rows.map(item => `
-    <tr>
-      <td>${item.pair}</td>
-      <td>
-        <span class="badge ${item.bias.toLowerCase()}">
-          ${item.bias}
-        </span>
-      </td>
-      <td>${item.confidence}%</td>
-      <td>${item.entry}</td>
-      <td>${item.takeProfit}</td>
-      <td>${item.stopLoss}</td>
-    </tr>
-  `).join("");
 
+  document.getElementById(targetId).innerHTML =
+    rows.map(item => `
+
+      <tr>
+
+        <td>${item.pair}</td>
+
+        <td>
+          <span class="badge ${item.bias.toLowerCase()}">
+            ${item.bias}
+          </span>
+        </td>
+
+        <td>${item.confidence}%</td>
+
+        <td>${item.entry}</td>
+
+        <td>${item.takeProfit}</td>
+
+        <td>${item.stopLoss}</td>
+
+      </tr>
+
+    `).join("");
 }
+
 document.getElementById("footerText").innerHTML =
   `© ${new Date().getFullYear()} ForexSnow AI • Live Snapshot Engine • Updated every ${REFRESH_LABEL}`;
