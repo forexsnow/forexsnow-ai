@@ -19,6 +19,8 @@ async function loadSnapshot() {
 
     const data = await response.json();
 
+    window.latestSnapshot = data;
+
     nextRefreshAt = Date.now() + REFRESH_MS;
 
     const bullish = data.rankings
@@ -94,7 +96,7 @@ function renderTopCard(targetId, label, item) {
       <div class="metric"><span>Take Profit Exit</span><strong>${item.takeProfit}</strong></div>
       <div class="metric"><span>Get Out Point</span><strong>${item.getOutPoint}</strong></div>
       <div class="metric"><span>Stop Loss</span><strong>${item.stopLoss}</strong></div>
-      <div class="metric"><span>AI Refresh Cycle</span><strong class="refreshCountdown">Refreshing...</strong></div>
+      <div class="metric"><span class="refreshLabel">Market Status</span><strong class="refreshCountdown">Refreshing...</strong></div>
     </div>
   `;
 }
@@ -117,16 +119,44 @@ function renderRows(targetId, rows) {
 }
 
 function updateRefreshCountdown() {
-  const remaining = Math.max(0, nextRefreshAt - Date.now());
+  const marketOpen = window.latestSnapshot?.marketOpen;
+  const reopenCountdown = window.latestSnapshot?.marketReopenCountdown;
+
+  const countdownElements =
+    document.querySelectorAll(".refreshCountdown");
+
+  const labelElements =
+    document.querySelectorAll(".refreshLabel");
+
+  labelElements.forEach(label => {
+    label.textContent = "Market Status";
+  });
+
+  if (marketOpen === false) {
+    countdownElements.forEach(item => {
+      item.textContent =
+        `Reopens in ${reopenCountdown || "soon"}`;
+    });
+
+    return;
+  }
+
+  const remaining = Math.max(
+    0,
+    nextRefreshAt - Date.now()
+  );
 
   const minutes = Math.floor(remaining / 60000);
-  const seconds = Math.floor((remaining % 60000) / 1000)
+
+  const seconds = Math.floor(
+    (remaining % 60000) / 1000
+  )
     .toString()
     .padStart(2, "0");
 
   const label = `Refreshing in ${minutes}:${seconds}`;
 
-  document.querySelectorAll(".refreshCountdown").forEach(item => {
+  countdownElements.forEach(item => {
     item.textContent = label;
   });
 }
