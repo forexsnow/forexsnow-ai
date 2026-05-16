@@ -369,7 +369,77 @@ function evaluateTradeOutcome(play, latestPrice) {
 
   return play;
 }
+function calculatePerformanceStats() {
+  const allPlays = tradeHistory.flatMap(
+    entry => entry.rankings || []
+  );
 
+  const wins = allPlays.filter(
+    play => play.status === "WIN"
+  );
+
+  const losses = allPlays.filter(
+    play => play.status === "LOSS"
+  );
+
+  const open = allPlays.filter(
+    play => play.status === "OPEN"
+  );
+
+  const completed = wins.length + losses.length;
+
+  const winRate = completed > 0
+    ? Math.round((wins.length / completed) * 100)
+    : 0;
+
+  const pairStats = {};
+
+  allPlays.forEach(play => {
+    if (!pairStats[play.pair]) {
+      pairStats[play.pair] = {
+        pair: play.pair,
+        wins: 0,
+        losses: 0,
+        open: 0
+      };
+    }
+
+    if (play.status === "WIN") {
+      pairStats[play.pair].wins++;
+    }
+
+    if (play.status === "LOSS") {
+      pairStats[play.pair].losses++;
+    }
+
+    if (play.status === "OPEN") {
+      pairStats[play.pair].open++;
+    }
+  });
+
+  const bestPair = Object.values(pairStats)
+    .map(item => {
+      const total = item.wins + item.losses;
+
+      return {
+        ...item,
+        winRate: total > 0
+          ? Math.round((item.wins / total) * 100)
+          : 0
+      };
+    })
+    .sort((a, b) => b.winRate - a.winRate)[0] || null;
+
+  return {
+    totalPlays: allPlays.length,
+    wins: wins.length,
+    losses: losses.length,
+    open: open.length,
+    completed,
+    winRate,
+    bestPair
+  };
+}
 async function getPriceForPair(item) {
   try {
     const price =
@@ -518,6 +588,9 @@ async function buildSnapshot() {
       "Bearish pressure currently leads across select currency pairs.";
   }
 
+const performanceStats =
+  calculatePerformanceStats();
+  
   const historyEntry = {
     timestamp:
       new Date().toISOString(),
@@ -600,6 +673,8 @@ async function buildSnapshot() {
       learningActive: true
     },
 
+    performance: performanceStats,
+    
     sources: [
       {
         name:
