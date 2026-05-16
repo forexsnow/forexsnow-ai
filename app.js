@@ -74,6 +74,30 @@ async function loadSnapshot() {
   }
 }
 
+function buildCopyText(item) {
+  return `${item.pair}
+${item.bias}
+
+Last Price: ${item.lastPrice || item.entry}
+Take Profit: ${item.takeProfit}
+Stop Loss: ${item.stopLoss}
+Confidence: ${item.confidence}%`;
+}
+
+function copyPlay(button, encodedPlay) {
+  const item = JSON.parse(decodeURIComponent(encodedPlay));
+  const text = buildCopyText(item);
+
+  navigator.clipboard.writeText(text).then(() => {
+    const originalText = button.textContent;
+    button.textContent = "Copied ✓";
+
+    setTimeout(() => {
+      button.textContent = originalText;
+    }, 1600);
+  });
+}
+
 function renderTopCard(targetId, label, item) {
   if (!item) {
     document.getElementById(targetId).innerHTML = `
@@ -83,6 +107,8 @@ function renderTopCard(targetId, label, item) {
     return;
   }
 
+  const encodedPlay = encodeURIComponent(JSON.stringify(item));
+
   document.getElementById(targetId).innerHTML = `
     <div class="top-header">
       <div>
@@ -90,6 +116,13 @@ function renderTopCard(targetId, label, item) {
         <h2 class="top-pair">${item.pair}</h2>
         <span class="badge ${item.bias.toLowerCase()}">${item.bias}</span>
       </div>
+
+      <button
+        class="copy-play-btn"
+        onclick="copyPlay(this, '${encodedPlay}')"
+      >
+        Copy Play
+      </button>
     </div>
 
     <div class="setup-grid">
