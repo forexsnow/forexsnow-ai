@@ -197,17 +197,13 @@ function getMomentum(pair, currentPrice) {
     priceHistory[pair] || [];
 
   if (history.length < 2) {
-    return (
-      (Math.random() - 0.45) * 0.2
-    );
+    return 0;
   }
 
   const oldest = history[0].price;
 
   if (!oldest) {
-    return (
-      (Math.random() - 0.45) * 0.2
-    );
+    return 0;
   }
 
   return (
