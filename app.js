@@ -61,8 +61,8 @@ async function loadSnapshot() {
         `${bearishTop.confidence}%`;
     }
 
-    renderTopCard("bullishTopPick", "Bullish Top Opportunity", bullishTop);
-    renderTopCard("bearishTopPick", "Bearish Top Opportunity", bearishTop);
+    renderTopCard("bullishTopPick", "Top Bullish Play", bullishTop);
+    renderTopCard("bearishTopPick", "Top Bearish Play", bearishTop);
 
     renderRows("bullishRankings", bullish);
     renderRows("bearishRankings", bearish);
