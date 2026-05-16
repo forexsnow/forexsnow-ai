@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const REFRESH_MS = 5 * 60 * 1000;
 const HISTORY_FILE = "./trade-history.json";
+const TWELVEDATA_API_KEY = process.env.TWELVEDATA_API_KEY || "";
 
 app.use(cors());
 app.use(express.json());
@@ -26,16 +27,16 @@ try {
 const priceHistory = {};
 
 const pairs = [
-  { pair: "EUR/USD", symbol: "eurusd" },
-  { pair: "GBP/USD", symbol: "gbpusd" },
-  { pair: "USD/JPY", symbol: "usdjpy" },
-  { pair: "AUD/USD", symbol: "audusd" },
-  { pair: "USD/CAD", symbol: "usdcad" },
-  { pair: "USD/CHF", symbol: "usdchf" },
-  { pair: "NZD/USD", symbol: "nzdusd" },
-  { pair: "GBP/JPY", symbol: "gbpjpy" },
-  { pair: "EUR/JPY", symbol: "eurjpy" },
-  { pair: "EUR/AUD", symbol: "euraud" }
+  { pair: "EUR/USD", stooqSymbol: "eurusd", twelveSymbol: "EUR/USD" },
+  { pair: "GBP/USD", stooqSymbol: "gbpusd", twelveSymbol: "GBP/USD" },
+  { pair: "USD/JPY", stooqSymbol: "usdjpy", twelveSymbol: "USD/JPY" },
+  { pair: "AUD/USD", stooqSymbol: "audusd", twelveSymbol: "AUD/USD" },
+  { pair: "USD/CAD", stooqSymbol: "usdcad", twelveSymbol: "USD/CAD" },
+  { pair: "USD/CHF", stooqSymbol: "usdchf", twelveSymbol: "USD/CHF" },
+  { pair: "NZD/USD", stooqSymbol: "nzdusd", twelveSymbol: "NZD/USD" },
+  { pair: "GBP/JPY", stooqSymbol: "gbpjpy", twelveSymbol: "GBP/JPY" },
+  { pair: "EUR/JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY" },
+  { pair: "EUR/AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD" }
 ];
 
 function isForexMarketOpen() {
@@ -116,6 +117,30 @@ async function fetchWithTimeout(url, timeoutMs = 8000) {
   }
 }
 
+async function fetchTwelveDataPrice(symbol) {
+  if (!TWELVEDATA_API_KEY) {
+    throw new Error("Missing TWELVEDATA_API_KEY");
+  }
+
+  const url =
+    `https://api.twelvedata.com/price?symbol=${encodeURIComponent(symbol)}&apikey=${TWELVEDATA_API_KEY}`;
+
+  const raw = await fetchWithTimeout(url);
+  const data = JSON.parse(raw);
+
+  if (data.status === "error") {
+    throw new Error(data.message || "TwelveData error");
+  }
+
+  const price = safeNumber(data.price);
+
+  if (!price) {
+    throw new Error("Invalid TwelveData price");
+  }
+
+  return price;
+}
+
 async function fetchStooqPrice(symbol) {
   const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=csv`;
 
@@ -141,7 +166,7 @@ async function fetchStooqPrice(symbol) {
     safeNumber(row.price);
 
   if (!close) {
-    throw new Error("Invalid quote price");
+    throw new Error("Invalid Stooq price");
   }
 
   return close;
@@ -356,36 +381,53 @@ function calculatePerformanceStats() {
 }
 
 async function getPriceForPair(item) {
+  const errors = [];
+
   try {
-    const price = await fetchStooqPrice(item.symbol);
+    const price = await fetchTwelveDataPrice(item.twelveSymbol);
+
+    return {
+      price,
+      source: "TwelveData",
+      live: true,
+      sourceMode: "Primary"
+    };
+  } catch (error) {
+    errors.push(`TwelveData: ${error.message}`);
+  }
+
+  try {
+    const price = await fetchStooqPrice(item.stooqSymbol);
 
     return {
       price,
       source: "Stooq",
       live: true,
-      sourceMode: "Live"
+      sourceMode: "Backup"
     };
   } catch (error) {
-    const lastKnownPrice = getLastKnownPrice(item.pair);
+    errors.push(`Stooq: ${error.message}`);
+  }
 
-    if (!lastKnownPrice) {
-      return {
-        price: null,
-        source: "Unavailable",
-        live: false,
-        sourceMode: "Unavailable",
-        error: error.message
-      };
-    }
+  const lastKnownPrice = getLastKnownPrice(item.pair);
 
+  if (!lastKnownPrice) {
     return {
-      price: lastKnownPrice,
-      source: "Last Known Market Price",
+      price: null,
+      source: "Unavailable",
       live: false,
-      sourceMode: "Last Known",
-      error: error.message
+      sourceMode: "Unavailable",
+      error: errors.join(" | ")
     };
   }
+
+  return {
+    price: lastKnownPrice,
+    source: "Last Known Market Price",
+    live: false,
+    sourceMode: "Last Known",
+    error: errors.join(" | ")
+  };
 }
 
 async function buildSnapshot() {
@@ -451,6 +493,8 @@ async function buildSnapshot() {
   const bearishCount = rankings.filter(item => item.bias === "Bearish").length;
 
   const liveCount = sourceStatus.filter(item => item.live).length;
+  const primaryCount = sourceStatus.filter(item => item.source === "TwelveData").length;
+  const backupCount = sourceStatus.filter(item => item.source === "Stooq").length;
   const availableCount = rankings.length;
   const unavailableCount = sourceStatus.length - availableCount;
   const lastKnownUsed = sourceStatus.some(item => item.sourceMode === "Last Known");
@@ -507,7 +551,10 @@ async function buildSnapshot() {
       live: liveCount > 0,
       marketOpen,
       marketReopenCountdown,
-      primarySource: "Stooq",
+      primarySource: "TwelveData",
+      backupSource: "Stooq",
+      primaryPairs: primaryCount,
+      backupPairs: backupCount,
       lastKnownUsed,
       livePairs: liveCount,
       availablePairs: availableCount,
@@ -516,11 +563,15 @@ async function buildSnapshot() {
       checkedAt: new Date().toISOString(),
       message: !marketOpen
         ? `Forex market currently closed. Reopens in ${marketReopenCountdown}.`
-        : lastKnownUsed
-          ? "Some live data was delayed. ForexSnow used last known market prices where needed."
-          : liveCount > 0
-            ? "Live market data active."
-            : "Live market data temporarily unavailable.",
+        : primaryCount > 0 && backupCount === 0 && !lastKnownUsed
+          ? "Primary market data active."
+          : lastKnownUsed
+            ? "Some live data was delayed. ForexSnow used last known market prices where needed."
+            : backupCount > 0
+              ? "Primary data partially delayed. Backup market data active."
+              : liveCount > 0
+                ? "Live market data active."
+                : "Live market data temporarily unavailable.",
       sourceStatus
     },
     memory: {
@@ -529,6 +580,10 @@ async function buildSnapshot() {
     },
     performance: performanceStats,
     sources: [
+      {
+        name: "TwelveData FX Quotes",
+        url: "https://twelvedata.com"
+      },
       {
         name: "Stooq FX Quotes",
         url: "https://stooq.com"
@@ -577,7 +632,9 @@ app.get("/health", (req, res) => {
     refreshMs: REFRESH_MS,
     hasSnapshot: Boolean(snapshot),
     marketOpen: snapshot?.marketOpen ?? null,
-    historicalSnapshots: tradeHistory.length
+    historicalSnapshots: tradeHistory.length,
+    primarySource: "TwelveData",
+    backupSource: "Stooq"
   });
 });
 
