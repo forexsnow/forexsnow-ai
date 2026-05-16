@@ -18,7 +18,7 @@
 
   <div class="status-strip">
     <strong>Status:</strong>
-    Snapshot dashboard active. Data is informational, not financial advice.
+    ForexSnow continuously monitors market momentum and directional bias.
   </div>
 
   <main class="app">
@@ -40,8 +40,7 @@
       </h1>
 
       <p class="subtitle">
-        ForexSnow tracks forex momentum, sentiment, and market opportunity
-        signals in a clean snapshot dashboard built for fast decision support.
+        Clear market direction powered by live AI assisted forex analysis.
       </p>
 
       <div class="hero-actions">
@@ -71,6 +70,7 @@
     >
       Loading bullish top opportunity...
     </section>
+
     <section class="forecast-card">
 
       <p class="section-label">
@@ -101,6 +101,7 @@
       </div>
 
     </section>
+
     <section
       class="table-card"
       id="dashboard"
@@ -114,7 +115,7 @@
           </p>
 
           <h2>
-            Bullish Opportunity Table
+            Bullish Signals
           </h2>
         </div>
 
@@ -125,15 +126,15 @@
         <table>
 
           <thead>
-  <tr>
-    <th>Pair</th>
-    <th>Bias</th>
-    <th>Confidence</th>
-    <th>Entry</th>
-    <th>Take Profit</th>
-    <th>Stop Loss</th>
-  </tr>
-</thead>
+            <tr>
+              <th>Pair</th>
+              <th>Bias</th>
+              <th>Confidence</th>
+              <th>Entry</th>
+              <th>Take Profit</th>
+              <th>Stop Loss</th>
+            </tr>
+          </thead>
 
           <tbody id="bullishRankings"></tbody>
 
@@ -149,6 +150,7 @@
     >
       Loading bearish top opportunity...
     </section>
+
     <section class="forecast-card bearish-card">
 
       <p class="section-label">
@@ -179,6 +181,7 @@
       </div>
 
     </section>
+
     <section class="table-card">
 
       <div class="table-head">
@@ -189,7 +192,7 @@
           </p>
 
           <h2>
-            Bearish Opportunity Table
+            Bearish Signals
           </h2>
         </div>
 
@@ -200,15 +203,15 @@
         <table>
 
           <thead>
-  <tr>
-    <th>Pair</th>
-    <th>Bias</th>
-    <th>Confidence</th>
-    <th>Entry</th>
-    <th>Take Profit</th>
-    <th>Stop Loss</th>
-  </tr>
-</thead>
+            <tr>
+              <th>Pair</th>
+              <th>Bias</th>
+              <th>Confidence</th>
+              <th>Entry</th>
+              <th>Take Profit</th>
+              <th>Stop Loss</th>
+            </tr>
+          </thead>
 
           <tbody id="bearishRankings"></tbody>
 
@@ -225,15 +228,16 @@
       </h2>
 
       <p>
-        ForexSnow is informational only. It is not financial advice.
-        Always verify data before trading.
+        ForexSnow provides AI assisted market snapshots and is not financial advice. Always manage risk responsibly.
       </p>
-<div
-          class="update-pill"
-          id="updatePill"
-        >
-          Updates: 0
-        </div>
+
+      <div
+        class="update-pill"
+        id="updatePill"
+      >
+        Updates: 0
+      </div>
+
     </section>
 
     <footer class="footer" id="footerText"></footer>
@@ -241,16 +245,6 @@
   </main>
 
   <script src="app.js?v=9"></script>
-  
-<script>
-  const REFRESH_LABEL = "5 minutes";
 
-  document.getElementById("year").textContent =
-    new Date().getFullYear();
-
-  document.getElementById("refreshTime").textContent =
-    REFRESH_LABEL;
-</script>
-  
 </body>
 </html>
