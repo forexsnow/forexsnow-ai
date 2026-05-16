@@ -113,23 +113,37 @@ function renderTopCard(targetId, label, item) {
 function renderRows(targetId, rows) {
   const tableBody = document.getElementById(targetId);
 
-  const isBearish = targetId.includes("bearish");
-
   if (!rows || rows.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6" class="emptyState">
-          ${
-            isBearish
-              ? "No active bearish setup right now. ForexSnow is displaying latest market positioning while downside pressure develops."
-              : "No active bullish setup right now. ForexSnow is displaying latest market positioning while upside momentum develops."
-          }
+        <td colspan="6">
+          No active signals right now. ForexSnow is monitoring live market positioning.
         </td>
       </tr>
     `;
-
     return;
   }
+
+  tableBody.innerHTML = rows.map(item => `
+    <tr>
+      <td>${item.pair}</td>
+
+      <td>${item.lastPrice || item.entry}</td>
+
+      <td>
+        <span class="badge ${item.bias.toLowerCase()}">
+          ${item.bias}
+        </span>
+      </td>
+
+      <td>${item.confidence}%</td>
+
+      <td>${item.takeProfit}</td>
+
+      <td>${item.stopLoss}</td>
+    </tr>
+  `).join("");
+}
 
   tableBody.innerHTML = rows.map(item => `
     <tr>
