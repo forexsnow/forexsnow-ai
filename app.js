@@ -113,14 +113,18 @@ function renderTopCard(targetId, label, item) {
 function renderRows(targetId, rows) {
   const tableBody = document.getElementById(targetId);
 
-  if (!rows || rows.length === 0) {
-    const label = targetId.includes("bearish")
-      ? "No bearish signals active right now."
-      : "No bullish signals active right now.";
+  const isBearish = targetId.includes("bearish");
 
+  if (!rows || rows.length === 0) {
     tableBody.innerHTML = `
       <tr>
-        <td colspan="6">${label}</td>
+        <td colspan="6" class="emptyState">
+          ${
+            isBearish
+              ? "No active bearish setup right now. ForexSnow is displaying latest market positioning while downside pressure develops."
+              : "No active bullish setup right now. ForexSnow is displaying latest market positioning while upside momentum develops."
+          }
+        </td>
       </tr>
     `;
 
@@ -130,15 +134,16 @@ function renderRows(targetId, rows) {
   tableBody.innerHTML = rows.map(item => `
     <tr>
       <td>${item.pair}</td>
+
+      <td>${item.lastPrice || item.entry}</td>
+
       <td>
         <span class="badge ${item.bias.toLowerCase()}">
           ${item.bias}
         </span>
       </td>
+
       <td>${item.confidence}%</td>
-      <td>${item.entry}</td>
-      <td>${item.takeProfit}</td>
-      <td>${item.stopLoss}</td>
     </tr>
   `).join("");
 }
