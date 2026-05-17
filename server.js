@@ -317,6 +317,16 @@ function buildTradeSetup(
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
 
+let volatilityPenalty = 0;
+
+if (strength < 0.01) {
+  volatilityPenalty += 8;
+}
+
+if (strength < 0.005) {
+  volatilityPenalty += 6;
+}
+  
   const historyBoost = getConfidenceEvolutionAdjustment(pair, bias);
 
   let confidencePenalty = 0;
@@ -345,11 +355,12 @@ if (consensusStrength === 2) {
     96,
     Math.max(
       60,
-      Math.round(
+     Math.round(
   62 +
   strength * 70 +
   historyBoost -
-  confidencePenalty
+  confidencePenalty -
+ volatilityPenalty
 )
     )
   );
