@@ -491,6 +491,13 @@ function evaluateTradeOutcome(play, latestPrice) {
     }
   }
 
+  const ageMinutes =
+  (Date.now() - new Date(play.createdAt).getTime()) / 60000;
+
+if (ageMinutes > 720 && play.status === "OPEN") {
+  play.status = "EXPIRED";
+}
+
   if (play.status !== "OPEN") {
     play.closedAt = new Date().toISOString();
     play.resultPrice = latestPrice;
