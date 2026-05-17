@@ -420,17 +420,48 @@ if (hour >= 0 && hour <= 5) {
   sessionBoost -= 6;
 }
 
+let reopenAdjustment = 0;
+
+if (
+  lastLiveSnapshot &&
+  marketOpen &&
+  lastLiveSnapshot.rankings?.length
+) {
+  const previous = lastLiveSnapshot.rankings.find(
+    item => item.pair === pair
+  );
+
+  if (previous) {
+    const oldEntry = Number(previous.entry);
+
+    if (Number.isFinite(oldEntry)) {
+      const reopenMove = bullish
+        ? price - oldEntry
+        : oldEntry - price;
+
+      if (reopenMove > 0) {
+        reopenAdjustment += 4;
+      }
+
+      if (reopenMove < 0) {
+        reopenAdjustment -= 6;
+      }
+    }
+  }
+}
+  
 const confidence = Math.min(
   96,
   Math.max(
     45,
     Math.round(
       64 +
-      strength * 120 +
-      historyBoost +
-      consensusBoost +
-      sessionBoost -
-      confidencePenalty -
+strength * 120 +
+historyBoost +
+consensusBoost +
+sessionBoost +
+reopenAdjustment -
+confidencePenalty -
 volatilityPenalty -
 cooldownPenalty -
 regimePenalty
