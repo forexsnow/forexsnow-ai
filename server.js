@@ -408,6 +408,7 @@ if (dataAgeStatus === "Unverified") {
       ? "Current price momentum supports upside continuation."
       : "Current price momentum shows downside pressure.",
     sourceMode,
+    dataAgeStatus,
     status: "OPEN",
     createdAt: new Date().toISOString()
   };
@@ -665,12 +666,13 @@ for (const { item, result } of pairResults) {
   const momentum = getMomentum(item.pair, result.price);
 
   setups.push(
-    buildTradeSetup(
+buildTradeSetup(
   item.pair,
   result.price,
   momentum,
   result.sourceMode,
   result.contributors?.length || 1,
+  result.dataAgeStatus || "Unverified",
   marketOpen
 )
   );
