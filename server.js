@@ -457,80 +457,122 @@ function calculatePerformanceStats() {
 
 async function getPriceForPair(item) {
   const errors = [];
+  const candidates = [];
 
-  try {
-    const price = await fetchTwelveDataPrice(item.twelveSymbol);
+  async function attempt(sourceName, fetcher) {
+    try {
+      const price = await fetcher();
 
-    return {
-      price,
-      source: "TwelveData",
-      live: true,
-      sourceMode: "Primary"
-    };
-  } catch (error) {
-    errors.push(`TwelveData: ${error.message}`);
+      if (Number.isFinite(price)) {
+        candidates.push({
+          source: sourceName,
+          price
+        });
+      }
+    } catch (error) {
+      errors.push(`${sourceName}: ${error.message}`);
+    }
   }
 
-  try {
-    const price = await fetchFinnhubPrice(item.base, item.quote);
+  await Promise.all([
+    attempt(
+      "TwelveData",
+      () => fetchTwelveDataPrice(item.twelveSymbol)
+    ),
+
+    attempt(
+      "Finnhub",
+      () => fetchFinnhubPrice(item.base, item.quote)
+    ),
+
+    attempt(
+      "Polygon",
+      () => fetchPolygonPrice(item.polygonSymbol)
+    ),
+
+    attempt(
+      "Stooq",
+      () => fetchStooqPrice(item.stooqSymbol)
+    )
+  ]);
+
+  if (candidates.length === 0) {
+    const lastKnownPrice = getLastKnownPrice(item.pair);
+
+    if (!lastKnownPrice) {
+      return {
+        price: null,
+        source: "Unavailable",
+        live: false,
+        sourceMode: "Unavailable",
+        error: errors.join(" | ")
+      };
+    }
 
     return {
-      price,
-      source: "Finnhub",
-      live: true,
-      sourceMode: "Secondary"
-    };
-  } catch (error) {
-    errors.push(`Finnhub: ${error.message}`);
-  }
-
-  try {
-    const price = await fetchPolygonPrice(item.polygonSymbol);
-
-    return {
-      price,
-      source: "Polygon",
-      live: true,
-      sourceMode: "Tertiary"
-    };
-  } catch (error) {
-    errors.push(`Polygon: ${error.message}`);
-  }
-
-  try {
-    const price = await fetchStooqPrice(item.stooqSymbol);
-
-    return {
-      price,
-      source: "Stooq",
-      live: true,
-      sourceMode: "Backup"
-    };
-  } catch (error) {
-    errors.push(`Stooq: ${error.message}`);
-  }
-
-  const lastKnownPrice = getLastKnownPrice(item.pair);
-
-  if (!lastKnownPrice) {
-    return {
-      price: null,
-      source: "Unavailable",
+      price: lastKnownPrice,
+      source: "Last Known Market Price",
       live: false,
-      sourceMode: "Unavailable",
+      sourceMode: "Last Known",
+      contributors: [],
       error: errors.join(" | ")
     };
   }
 
+  const sortedPrices = candidates
+    .map(item => item.price)
+    .sort((a, b) => a - b);
+
+  const median =
+    sortedPrices.length % 2 === 0
+      ? (
+          sortedPrices[sortedPrices.length / 2 - 1] +
+          sortedPrices[sortedPrices.length / 2]
+        ) / 2
+      : sortedPrices[Math.floor(sortedPrices.length / 2)];
+
+  const trusted = candidates.filter(item => {
+    const deviation =
+      Math.abs(item.price - median) / median;
+
+    return deviation <= 0.0035;
+  });
+
+  const finalSources =
+    trusted.length > 0
+      ? trusted
+      : candidates;
+
+  const consensusPrice =
+    finalSources.reduce(
+      (sum, item) => sum + item.price,
+      0
+    ) / finalSources.length;
+
   return {
-    price: lastKnownPrice,
-    source: "Last Known Market Price",
-    live: false,
-    sourceMode: "Last Known",
+    price: consensusPrice,
+    source:
+      finalSources.length > 1
+        ? "Consensus Engine"
+        : finalSources[0].source,
+    live: true,
+    sourceMode:
+      finalSources.length > 1
+        ? "Consensus"
+        : "Single Source",
+    contributors: finalSources.map(item => item.source),
+    rejectedSources: candidates
+      .filter(
+        item =>
+          !finalSources.find(
+            trusted =>
+              trusted.source === item.source
+          )
+      )
+      .map(item => item.source),
     error: errors.join(" | ")
   };
 }
-
 async function buildSnapshot() {
   updateCount++;
 
