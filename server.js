@@ -369,6 +369,22 @@ if (marketOpen) {
   consensusBoost += 4;
 }
 
+let sessionBoost = 0;
+
+const hour = new Date().getUTCHours();
+
+if (hour >= 7 && hour <= 11) {
+  sessionBoost += 8;
+}
+
+if (hour >= 12 && hour <= 16) {
+  sessionBoost += 10;
+}
+
+if (hour >= 0 && hour <= 5) {
+  sessionBoost -= 6;
+}
+
 const confidence = Math.min(
   96,
   Math.max(
@@ -377,10 +393,10 @@ const confidence = Math.min(
       58 +
       strength * 90 +
       historyBoost +
-      consensusBoost -
+      consensusBoost +
+      sessionBoost -
       confidencePenalty -
       volatilityPenalty
-    )
   )
 );
 
