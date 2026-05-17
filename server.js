@@ -17,6 +17,7 @@ app.use(express.json());
 app.use(express.static("."));
 
 let snapshot = null;
+let lastLiveSnapshot = null;
 let updateCount = 0;
 let tradeHistory = [];
 
@@ -857,6 +858,24 @@ const rankings = rankableSetups
     );
   }
 
+if (!marketOpen && lastLiveSnapshot?.rankings?.length) {
+  snapshot = {
+    ...lastLiveSnapshot,
+    updatedAt: new Date().toISOString(),
+    marketOpen,
+    marketReopenCountdown,
+    snapshotMode: "Cached",
+    marketThesis:
+      `Forex market currently closed. Showing last verified snapshot. Market reopens in ${marketReopenCountdown}.`,
+    rankings: lastLiveSnapshot.rankings.map(item => ({
+      ...item,
+      status: "CACHED"
+    }))
+  };
+
+  return;
+}
+  
   snapshot = {
     brand: "ForexSnow",
     updatedAt: new Date().toISOString(),
@@ -932,7 +951,9 @@ const rankings = rankableSetups
       "ForexSnow is informational only and not financial advice."
     ]
   };
-
+if (marketOpen && rankings.length > 0) {
+  lastLiveSnapshot = snapshot;
+}
   console.log(`Snapshot updated #${updateCount}`);
 }
 
