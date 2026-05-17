@@ -397,9 +397,9 @@ const confidence = Math.min(
       sessionBoost -
       confidencePenalty -
       volatilityPenalty
+    )
   )
 );
-
   const isJpy = pair.includes("JPY");
 
   const stopDistance = isJpy ? 0.55 : 0.0055;
