@@ -355,20 +355,34 @@ if (consensusStrength === 2) {
 if (dataAgeStatus === "Unverified") {
   confidencePenalty += 6;
 }
-  
-  const confidence = Math.min(
-    96,
-    Math.max(
-      60,
-     Math.round(
-  62 +
-  strength * 70 +
-  historyBoost -
-  confidencePenalty -
- volatilityPenalty
-)
+  let consensusBoost = 0;
+
+if (sourceMode === "Consensus") {
+  consensusBoost += 10;
+}
+
+if (dataAgeStatus === "Verified") {
+  consensusBoost += 6;
+}
+
+if (marketOpen) {
+  consensusBoost += 4;
+}
+
+const confidence = Math.min(
+  96,
+  Math.max(
+    45,
+    Math.round(
+      58 +
+      strength * 90 +
+      historyBoost +
+      consensusBoost -
+      confidencePenalty -
+      volatilityPenalty
     )
-  );
+  )
+);
 
   const isJpy = pair.includes("JPY");
 
