@@ -311,6 +311,7 @@ function buildTradeSetup(
   momentum,
   sourceMode,
   consensusStrength,
+  dataAgeStatus,
   marketOpen
 ) {
   const bullish = momentum >= 0;
@@ -351,6 +352,10 @@ if (consensusStrength === 2) {
   confidencePenalty += 4;
 }
 
+if (dataAgeStatus === "Unverified") {
+  confidencePenalty += 6;
+}
+  
   const confidence = Math.min(
     96,
     Math.max(
@@ -605,6 +610,10 @@ async function getPriceForPair(item) {
       finalSources.length > 1
         ? "Consensus"
         : "Single Source",
+    dataAgeStatus:
+  finalSources.length > 1
+    ? "Verified"
+    : "Unverified",
     contributors: finalSources.map(item => item.source),
     rejectedSources: candidates
       .filter(
