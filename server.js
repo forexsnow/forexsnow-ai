@@ -38,8 +38,8 @@ const pairs = [
   { pair: "USD/CHF", base: "USD", quote: "CHF", stooqSymbol: "usdchf", twelveSymbol: "USD/CHF", polygonSymbol: "C:USDCHF" },
   { pair: "NZD/USD", base: "NZD", quote: "USD", stooqSymbol: "nzdusd", twelveSymbol: "NZD/USD", polygonSymbol: "C:NZDUSD" },
   { pair: "GBP/JPY", base: "GBP", quote: "JPY", stooqSymbol: "gbpjpy", twelveSymbol: "GBP/JPY", polygonSymbol: "C:GBPJPY" },
-  { pair: "EUR/JPY", base: "EUR", quote: "JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY", polygonSymbol: "C:EURJPY" },
-  { pair: "EUR/AUD", base: "EUR", quote: "AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD", polygonSymbol: "C:EURAUD" }
+// { pair: "EUR/JPY", base: "EUR", quote: "JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY", polygonSymbol: "C:EURJPY" },
+// { pair: "EUR/AUD", base: "EUR", quote: "AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD", polygonSymbol: "C:EURAUD" },
 ];
 
 function isForexMarketOpen() {
