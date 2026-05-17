@@ -305,18 +305,52 @@ function getConfidenceEvolutionAdjustment(pair, bias) {
   return 0;
 }
 
-function buildTradeSetup(pair, price, momentum, sourceMode) {
+function buildTradeSetup(
+  pair,
+  price,
+  momentum,
+  sourceMode,
+  consensusStrength,
+  marketOpen
+) {
   const bullish = momentum >= 0;
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
 
   const historyBoost = getConfidenceEvolutionAdjustment(pair, bias);
 
+  let confidencePenalty = 0;
+
+if (!marketOpen) {
+  confidencePenalty += 8;
+}
+
+if (sourceMode === "Single Source") {
+  confidencePenalty += 10;
+}
+
+if (sourceMode === "Last Known") {
+  confidencePenalty += 18;
+}
+
+if (consensusStrength <= 1) {
+  confidencePenalty += 10;
+}
+
+if (consensusStrength === 2) {
+  confidencePenalty += 4;
+}
+
   const confidence = Math.min(
     96,
     Math.max(
       60,
-      Math.round(62 + strength * 70 + historyBoost)
+      Math.round(
+  62 +
+  strength * 70 +
+  historyBoost -
+  confidencePenalty
+)
     )
   );
 
