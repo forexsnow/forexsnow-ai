@@ -38,8 +38,8 @@ const pairs = [
   { pair: "USD/CHF", base: "USD", quote: "CHF", stooqSymbol: "usdchf", twelveSymbol: "USD/CHF", polygonSymbol: "C:USDCHF" },
   { pair: "NZD/USD", base: "NZD", quote: "USD", stooqSymbol: "nzdusd", twelveSymbol: "NZD/USD", polygonSymbol: "C:NZDUSD" },
   { pair: "GBP/JPY", base: "GBP", quote: "JPY", stooqSymbol: "gbpjpy", twelveSymbol: "GBP/JPY", polygonSymbol: "C:GBPJPY" },
-// { pair: "EUR/JPY", base: "EUR", quote: "JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY", polygonSymbol: "C:EURJPY" },
-// { pair: "EUR/AUD", base: "EUR", quote: "AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD", polygonSymbol: "C:EURAUD" },
+  { pair: "EUR/JPY", base: "EUR", quote: "JPY", stooqSymbol: "eurjpy", twelveSymbol: "EUR/JPY", polygonSymbol: "C:EURJPY" },
+  { pair: "EUR/AUD", base: "EUR", quote: "AUD", stooqSymbol: "euraud", twelveSymbol: "EUR/AUD", polygonSymbol: "C:EURAUD" },
 ];
 
 function isForexMarketOpen() {
@@ -84,6 +84,12 @@ function safeNumber(value) {
 }
 
 function getLastKnownPrice(pair) {
+  const memoryPrice = priceHistory[pair]?.at(-1)?.price;
+
+  if (Number.isFinite(memoryPrice)) {
+    return memoryPrice;
+  }
+
   const historicalPrices = tradeHistory
     .flatMap(entry => entry.rankings || [])
     .filter(item => item.pair === pair && item.lastPrice)
@@ -717,8 +723,8 @@ for (const { item, result } of pairResults) {
     continue;
   }
 
-  rememberPrice(item.pair, result.price);
-
+rememberPrice(item.pair, result.price);
+result.lastKnownPrice = result.price;
   const momentum = getMomentum(item.pair, result.price);
 
   setups.push(
