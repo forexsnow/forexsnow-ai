@@ -646,11 +646,13 @@ for (const { item, result } of pairResults) {
 
   setups.push(
     buildTradeSetup(
-      item.pair,
-      result.price,
-      momentum,
-      result.sourceMode
-    )
+  item.pair,
+  result.price,
+  momentum,
+  result.sourceMode,
+  result.contributors?.length || 1,
+  marketOpen
+)
   );
 }
 
