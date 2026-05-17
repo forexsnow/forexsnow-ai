@@ -431,7 +431,8 @@ const confidence = Math.min(
       sessionBoost -
       confidencePenalty -
 volatilityPenalty -
-cooldownPenalty
+cooldownPenalty -
+regimePenalty
     )
   )
 );
@@ -474,6 +475,7 @@ cooldownPenalty
       : "Current price momentum shows downside pressure.",
     sourceMode,
     dataAgeStatus,
+    regime,
     status: "OPEN",
     createdAt: new Date().toISOString()
   };
