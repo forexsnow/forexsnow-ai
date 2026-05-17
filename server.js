@@ -688,12 +688,21 @@ buildTradeSetup(
     });
   });
 
-  const rankings = setups
-    .sort((a, b) => {
-      if (a.bias === "Bullish" && b.bias === "Bearish") return -1;
-      if (a.bias === "Bearish" && b.bias === "Bullish") return 1;
-      return b.confidence - a.confidence;
+const rankableSetups = marketOpen
+  ? setups.filter(setup => {
+      return (
+        setup.confidence >= 64 &&
+        setup.dataAgeStatus === "Verified"
+      );
     })
+  : setups;
+
+const rankings = rankableSetups
+  .sort((a, b) => {
+    if (a.bias === "Bullish" && b.bias === "Bearish") return -1;
+    if (a.bias === "Bearish" && b.bias === "Bullish") return 1;
+    return b.confidence - a.confidence;
+  })
     .map((item, index) => ({
       rank: index + 1,
       ...item
