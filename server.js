@@ -303,10 +303,21 @@ function getConfidenceEvolutionAdjustment(pair, bias) {
   const wins = historicalPlays.filter(play => play.status === "WIN").length;
   const winRate = wins / historicalPlays.length;
 
-  if (winRate >= 0.7) return 6;
-  if (winRate >= 0.6) return 3;
-  if (winRate <= 0.35) return -6;
-  if (winRate <= 0.45) return -3;
+  if (historicalPlays.length >= 20) {
+  if (winRate >= 0.75) return 10;
+  if (winRate >= 0.65) return 6;
+  if (winRate >= 0.55) return 3;
+
+  if (winRate <= 0.30) return -10;
+  if (winRate <= 0.40) return -6;
+  if (winRate <= 0.48) return -3;
+}
+
+if (winRate >= 0.7) return 6;
+if (winRate >= 0.6) return 3;
+
+if (winRate <= 0.35) return -6;
+if (winRate <= 0.45) return -3;
 
   return 0;
 }
