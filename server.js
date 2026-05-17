@@ -555,6 +555,32 @@ async function getPriceForPair(item) {
     }
   }
 
+  if (!isForexMarketOpen()) {
+  const lastKnownPrice = getLastKnownPrice(item.pair);
+
+  if (!lastKnownPrice) {
+    return {
+      price: null,
+      source: "Market Closed",
+      live: false,
+      sourceMode: "Unavailable",
+      dataAgeStatus: "Unverified",
+      contributors: [],
+      error: "Market closed. Live quote polling paused."
+    };
+  }
+
+  return {
+    price: lastKnownPrice,
+    source: "Last Known Market Price",
+    live: false,
+    sourceMode: "Last Known",
+    dataAgeStatus: "Unverified",
+    contributors: [],
+    error: "Market closed. Using last known price."
+  };
+}
+
   await Promise.all([
     attempt(
       "TwelveData",
