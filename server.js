@@ -332,6 +332,23 @@ function buildTradeSetup(
   marketOpen
 ) {
   const bullish = momentum >= 0;
+  const recentPlay = tradeHistory
+  .flatMap(entry => entry.rankings || [])
+  .find(play => play.pair === pair);
+
+let cooldownPenalty = 0;
+
+if (
+  recentPlay &&
+  recentPlay.bias !== (bullish ? "Bullish" : "Bearish")
+) {
+  const ageMinutes =
+    (Date.now() - new Date(recentPlay.createdAt).getTime()) / 60000;
+
+  if (ageMinutes < 60) {
+    cooldownPenalty += 12;
+  }
+}
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
 
@@ -413,7 +430,8 @@ const confidence = Math.min(
       consensusBoost +
       sessionBoost -
       confidencePenalty -
-      volatilityPenalty
+volatilityPenalty -
+cooldownPenalty
     )
   )
 );
