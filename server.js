@@ -864,7 +864,7 @@ const rankableSetups = marketOpen
   ? setups.filter(setup => {
       return (
         setup.confidence >= 64 &&
-        setup.dataAgeStatus === "Verified"
+        ["Verified", "Consensus", "Cached"].includes(setup.dataAgeStatus)
       );
     })
   : setups;
