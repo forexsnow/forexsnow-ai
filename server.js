@@ -372,7 +372,7 @@ if (!oldest) {
   return Math.random() > 0.5 ? 0.08 : -0.08;
 }
 
-  return ((currentPrice - oldest) / oldest) * 1000;
+  return ((currentPrice - oldest) / oldest) * 100;
 }
 
 function getConfidenceEvolutionAdjustment(pair, bias) {
