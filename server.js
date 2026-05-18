@@ -226,7 +226,7 @@ async function fetchPolygonPrice(symbol) {
   const prevClose = safeNumber(ticker?.prevDay?.c);
 
   const mid =
-    bid && ask
+    bid && aske
       ? (bid + ask) / 2
       : null;
 
@@ -695,25 +695,24 @@ async function getPriceForPair(item) {
 
   await Promise.all([
     attempt(
-      "TwelveData",
-      () => fetchTwelveDataPrice(item.twelveSymbol)
-    ),
+  "Stooq",
+  () => fetchStooqPrice(item.stooqSymbol)
+),
 
-    attempt(
-      "Finnhub",
-      () => fetchFinnhubPrice(item.base, item.quote)
-    ),
+attempt(
+  "TwelveData",
+  () => fetchTwelveDataPrice(item.twelveSymbol)
+),
 
-    attempt(
-      "Polygon",
-      () => fetchPolygonPrice(item.polygonSymbol)
-    ),
+attempt(
+  "Finnhub",
+  () => fetchFinnhubPrice(item.base, item.quote)
+),
 
-    attempt(
-      "Stooq",
-      () => fetchStooqPrice(item.stooqSymbol)
-    )
-  ]);
+attempt(
+  "Polygon",
+  () => fetchPolygonPrice(item.polygonSymbol)
+)
 
   if (candidates.length === 0) {
     const lastKnownPrice = getLastKnownPrice(item.pair);
