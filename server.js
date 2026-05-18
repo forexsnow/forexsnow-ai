@@ -317,13 +317,13 @@ function getMomentum(pair, currentPrice) {
   const history = priceHistory[pair] || [];
 
 if (history.length < 2) {
-  return Math.random() > 0.5 ? 0.015 : -0.015;
+  return Math.random() > 0.5 ? 0.08 : -0.08;
 }
 
   const oldest = history[0].price;
 
 if (!oldest) {
-  return Math.random() > 0.5 ? 0.015 : -0.015;
+  return Math.random() > 0.5 ? 0.08 : -0.08;
 }
 
   return ((currentPrice - oldest) / oldest) * 100;
