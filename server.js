@@ -367,9 +367,9 @@ if (winRate <= 0.45) return -3;
 }
 
 function getConfidenceTier(confidence) {
-  if (confidence >= 80) return "Elite";
-  if (confidence >= 75) return "High";
-  if (confidence >= 60) return "Medium";
+  if (confidence >= 85) return "Elite";
+  if (confidence >= 72) return "High";
+  if (confidence >= 58) return "Medium";
   return "Low";
 }
 
@@ -522,9 +522,9 @@ if (
 const confidence = Math.min(
   96,
   Math.max(
-    45,
+    40,
     Math.round(
-      64 +
+      58 +
 strength * 120 +
 historyBoost +
 consensusBoost +
