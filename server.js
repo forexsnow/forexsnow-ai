@@ -1025,7 +1025,7 @@ if (!marketOpen && lastLiveSnapshot?.rankings?.length) {
     marketReopenCountdown,
     updateCount,
     totalHistoricalSnapshots: tradeHistory.length,
-    topPick: rankings[0] || null,
+    topPick: rankings.find(item => item.confidence >= 75) || null,
     rankings,
     marketThesis,
     dataHealth: {
