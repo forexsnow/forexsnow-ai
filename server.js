@@ -898,12 +898,21 @@ const rankableSetups = marketOpen
     })
   : setups;
 
+  const tierOrder = {
+  Elite: 0,
+  High: 1,
+  Medium: 2,
+  Low: 3
+};
+
 const rankings = rankableSetups
   .sort((a, b) => {
-    if (a.bias === "Bullish" && b.bias === "Bearish") return -1;
-    if (a.bias === "Bearish" && b.bias === "Bullish") return 1;
-    return b.confidence - a.confidence;
-  })
+  if (tierOrder[a.tier] !== tierOrder[b.tier]) {
+    return tierOrder[a.tier] - tierOrder[b.tier];
+  }
+
+  return b.confidence - a.confidence;
+})
     .map((item, index) => ({
       rank: index + 1,
       ...item
