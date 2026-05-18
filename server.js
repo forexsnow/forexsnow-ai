@@ -366,6 +366,13 @@ if (winRate <= 0.45) return -3;
   return 0;
 }
 
+function getConfidenceTier(confidence) {
+  if (confidence >= 80) return "Elite";
+  if (confidence >= 75) return "High";
+  if (confidence >= 60) return "Medium";
+  return "Low";
+}
+
 function buildTradeSetup(
   pair,
   price,
@@ -528,6 +535,7 @@ regimePenalty
     )
   )
 );
+  const tier = getConfidenceTier(confidence);
   const isJpy = pair.includes("JPY");
 
   const stopDistance = isJpy ? 0.55 : 0.0055;
@@ -553,10 +561,10 @@ regimePenalty
 
   return {
     pair,
-    lastPrice: entry,
-    bias,
-    confidence,
-    entry,
+lastPrice: entry,
+bias,
+confidence,
+tier,
     stopLoss,
     takeProfit,
     getOutPoint: bullish
