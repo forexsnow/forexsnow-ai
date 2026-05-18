@@ -710,9 +710,14 @@ attempt(
 ),
 
 attempt(
+
   "Polygon",
+
   () => fetchPolygonPrice(item.polygonSymbol)
+
 )
+
+]);
 
   if (candidates.length === 0) {
     const lastKnownPrice = getLastKnownPrice(item.pair);
