@@ -26,16 +26,14 @@ async function loadSnapshot() {
     window.latestSnapshot = data;
     nextRefreshAt = Date.now() + REFRESH_MS;
 
-    const bullish = data.rankings
-      .filter(item => item.bias === "Bullish")
-      .sort((a, b) => b.confidence - a.confidence);
+    const bullish = data.bullishRankings || [];
+const bearish = data.bearishRankings || [];
 
-    const bearish = data.rankings
-      .filter(item => item.bias === "Bearish")
-      .sort((a, b) => b.confidence - a.confidence);
+const bullishTop =
+  data.topBullishPick || bullish[0] || null;
 
-    const bullishTop = bullish[0];
-    const bearishTop = bearish[0];
+const bearishTop =
+  data.topBearishPick || bearish[0] || null;
 
     document.getElementById("lastRefresh").textContent =
       `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
