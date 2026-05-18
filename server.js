@@ -773,32 +773,27 @@ async function getPriceForPair(item) {
   };
 }
 
-  await Promise.all([
-    attempt(
-  "Stooq",
-  () => fetchStooqPrice(item.stooqSymbol)
-),
+await Promise.all([
+  attempt(
+    "OANDA",
+    () => fetchOandaPrice(item.pair)
+  ),
 
-attempt(
-  "TwelveData",
-  () => fetchTwelveDataPrice(item.twelveSymbol)
-),
+  attempt(
+    "Stooq",
+    () => fetchStooqPrice(item.stooqSymbol)
+  ),
 
-attempt(
-  "Finnhub",
-  () => fetchFinnhubPrice(item.base, item.quote)
-),
+  attempt(
+    "TwelveData",
+    () => fetchTwelveDataPrice(item.twelveSymbol)
+  ),
 
-attempt(
-
-  "Polygon",
-
-  () => fetchPolygonPrice(item.polygonSymbol)
-
-)
-
+  attempt(
+    "Finnhub",
+    () => fetchFinnhubPrice(item.base, item.quote)
+  ),
 ]);
-
   if (candidates.length === 0) {
     const lastKnownPrice = getLastKnownPrice(item.pair);
 
