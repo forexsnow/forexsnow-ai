@@ -862,7 +862,7 @@ buildTradeSetup(
 
 const rankableSetups = marketOpen
   ? setups.filter(setup => {
-      return setup.confidence >= 45;
+      return setup.confidence >= 75;
     })
   : setups;
 
