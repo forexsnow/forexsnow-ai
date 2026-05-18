@@ -155,10 +155,11 @@ function renderRows(targetId, rows) {
       <td>${item.pair}</td>
       <td>${item.lastPrice || item.entry}</td>
       <td>
-        <span class="badge ${item.bias.toLowerCase()}">
-          ${item.bias}
-        </span>
-      </td>
+  <span class="tier tier-${item.tier.toLowerCase()}">
+    <span class="tier-dot"></span>
+    ${item.tier}
+  </span>
+</td>
       <td>${item.confidence}%</td>
       <td>${item.takeProfit}</td>
       <td>${item.stopLoss}</td>
