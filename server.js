@@ -382,7 +382,11 @@ function buildTradeSetup(
   dataAgeStatus,
   marketOpen
 ) {
-  const bullish = momentum >= 0;
+  if (momentum === 0) {
+  return null;
+}
+
+const bullish = momentum > 0;
   const recentPlay = tradeHistory
   .flatMap(entry => entry.rankings || [])
   .find(play => play.pair === pair);
@@ -869,8 +873,7 @@ rememberPrice(item.pair, result.price);
 result.lastKnownPrice = result.price;
   const momentum = getMomentum(item.pair, result.price);
 
-  setups.push(
-buildTradeSetup(
+const setup = buildTradeSetup(
   item.pair,
   result.price,
   momentum,
@@ -878,8 +881,11 @@ buildTradeSetup(
   result.contributors?.length || 1,
   result.dataAgeStatus || "Unverified",
   marketOpen
-)
-  );
+);
+
+if (setup) {
+  setups.push(setup);
+}
 }
 
   tradeHistory.forEach(snapshotEntry => {
