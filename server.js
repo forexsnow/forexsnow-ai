@@ -155,16 +155,17 @@ async function fetchText(url, timeoutMs = 8000) {
 async function fetchTwelveDataPrice(symbol) {
   const today = new Date().toISOString().slice(0, 10);
 
-if (today !== twelveDataDay) {
-  twelveDataDay = today;
-  twelveDataDailyCount = 0;
-}
+  if (today !== twelveDataDay) {
+    twelveDataDay = today;
+    twelveDataDailyCount = 0;
+  }
 
-if (twelveDataDailyCount >= TWELVEDATA_DAILY_LIMIT) {
-  throw new Error("TwelveData daily budget reached");
-}
+  if (twelveDataDailyCount >= TWELVEDATA_DAILY_LIMIT) {
+    throw new Error("TwelveData daily budget reached");
+  }
 
-twelveDataDailyCount++;
+  twelveDataDailyCount++;
+
   if (!TWELVEDATA_API_KEY) {
     throw new Error("Missing TWELVEDATA_API_KEY");
   }
