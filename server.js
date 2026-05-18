@@ -862,15 +862,7 @@ buildTradeSetup(
 
 const rankableSetups = marketOpen
   ? setups.filter(setup => {
-      return (
-        setup.confidence >= 64 &&
-        (
-  setup.dataAgeStatus === "Verified" ||
-  setup.sourceMode === "Single Source" ||
-  setup.sourceMode === "Consensus" ||
-  setup.sourceMode === "Last Known"
-)
-      );
+      return setup.confidence >= 45;
     })
   : setups;
 
