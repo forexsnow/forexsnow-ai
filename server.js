@@ -950,8 +950,17 @@ if (eliteSetup) {
   }
 }
 
-  const bullishCount = rankings.filter(item => item.bias === "Bullish").length;
-  const bearishCount = rankings.filter(item => item.bias === "Bearish").length;
+const bullishRankings = rankings.filter(item => item.bias === "Bullish");
+const bearishRankings = rankings.filter(item => item.bias === "Bearish");
+
+const topBullishPick =
+  bullishRankings.find(item => item.confidence >= 75) || null;
+
+const topBearishPick =
+  bearishRankings.find(item => item.confidence >= 75) || null;
+
+const bullishCount = bullishRankings.length;
+const bearishCount = bearishRankings.length;
 
   const liveCount = sourceStatus.filter(item => item.live).length;
   const primaryCount = sourceStatus.filter(item => item.source === "TwelveData").length;
@@ -1026,7 +1035,11 @@ if (!marketOpen && lastLiveSnapshot?.rankings?.length) {
     updateCount,
     totalHistoricalSnapshots: tradeHistory.length,
     topPick: rankings.find(item => item.confidence >= 75) || null,
-    rankings,
+topBullishPick,
+topBearishPick,
+rankings,
+bullishRankings,
+bearishRankings,
     marketThesis,
     dataHealth: {
       live: liveCount > 0,
