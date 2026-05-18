@@ -250,7 +250,7 @@ async function fetchPolygonPrice(symbol) {
   const prevClose = safeNumber(ticker?.prevDay?.c);
 
   const mid =
-    bid && aske
+    bid && ask
       ? (bid + ask) / 2
       : null;
 
@@ -929,7 +929,7 @@ for (const alert of eliteAlerts) {
 Pair: ${alert.pair}
 Bias: ${alert.bias}
 Confidence: ${alert.confidence}%
-Price: ${alert.price}
+Price: ${alert.lastPrice}
 
 High confidence setup detected.`
   );
