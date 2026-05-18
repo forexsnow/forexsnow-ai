@@ -246,7 +246,7 @@ async function fetchPolygonPrice(symbol) {
 async function fetchStooqPrice(symbol) {
   const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=csv`;
 
-  const csv = await fetchText(url);
+    const csv = await fetchText(url, 15000);
   const lines = csv.trim().split("\n");
 
   if (lines.length < 2) {
