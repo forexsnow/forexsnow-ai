@@ -382,9 +382,7 @@ function buildTradeSetup(
   dataAgeStatus,
   marketOpen
 ) {
-  if (momentum === 0) {
-  return null;
-}
+
 
 const bullish = momentum > 0;
   const recentPlay = tradeHistory
