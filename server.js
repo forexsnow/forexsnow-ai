@@ -901,6 +901,23 @@ const rankings = rankableSetups
       ...item
     }));
 
+const eliteAlerts = rankings.filter(
+  item => item.confidence >= 80
+);
+
+for (const alert of eliteAlerts) {
+  await sendTelegramAlert(
+    `🚨 ForexSnow Elite Signal
+
+Pair: ${alert.pair}
+Bias: ${alert.bias}
+Confidence: ${alert.confidence}%
+Price: ${alert.price}
+
+High confidence setup detected.`
+  );
+}
+  
   const eliteSetup = rankings.find(item => item.confidence >= 80);
 
 if (eliteSetup) {
