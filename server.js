@@ -907,11 +907,7 @@ const rankableSetups = setups;
   Low: 3
 };
 
-const rankings = rankableSetups
-  .sort((a, b) => {
-  if (tierOrder[a.tier] !== tierOrder[b.tier]) {
-    return tierOrder[a.tier] - tierOrder[b.tier];
-  }
+const rankableSetups = setups.filter(Boolean);
 
   return b.confidence - a.confidence;
 })
