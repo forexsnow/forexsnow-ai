@@ -5,7 +5,8 @@ import fs from "fs";
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const REFRESH_MS = 5 * 60 * 1000;
+const ACTIVE_REFRESH_MS = 15 * 60 * 1000;
+const SLOW_REFRESH_MS = 30 * 60 * 1000;
 const HISTORY_FILE = "./trade-history.json";
 
 const TWELVEDATA_API_KEY = process.env.TWELVEDATA_API_KEY || "";
