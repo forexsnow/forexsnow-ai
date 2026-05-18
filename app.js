@@ -29,11 +29,8 @@ async function loadSnapshot() {
     const bullish = data.bullishRankings || [];
 const bearish = data.bearishRankings || [];
 
-const bullishTop =
-  data.topBullishPick || bullish[0] || null;
-
-const bearishTop =
-  data.topBearishPick || bearish[0] || null;
+const bullishTop = data.topBullishPick || null;
+const bearishTop = data.topBearishPick || null;
 
     document.getElementById("lastRefresh").textContent =
       `Last refreshed: ${new Date(data.updatedAt).toLocaleString()}`;
