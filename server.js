@@ -13,6 +13,10 @@ const HISTORY_FILE = "./trade-history.json";
 const TWELVEDATA_API_KEY = process.env.TWELVEDATA_API_KEY || "";
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || "";
 const POLYGON_API_KEY = process.env.POLYGON_API_KEY || "";
+const TWELVEDATA_DAILY_LIMIT = 750;
+
+let twelveDataDailyCount = 0;
+let twelveDataDay = new Date().toISOString().slice(0, 10);
 
 app.use(cors());
 app.use(express.json());
@@ -149,6 +153,18 @@ async function fetchText(url, timeoutMs = 8000) {
 }
 
 async function fetchTwelveDataPrice(symbol) {
+  const today = new Date().toISOString().slice(0, 10);
+
+if (today !== twelveDataDay) {
+  twelveDataDay = today;
+  twelveDataDailyCount = 0;
+}
+
+if (twelveDataDailyCount >= TWELVEDATA_DAILY_LIMIT) {
+  throw new Error("TwelveData daily budget reached");
+}
+
+twelveDataDailyCount++;
   if (!TWELVEDATA_API_KEY) {
     throw new Error("Missing TWELVEDATA_API_KEY");
   }
