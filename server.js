@@ -372,6 +372,23 @@ if (
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
 
+  let regime = "Balanced";
+let regimePenalty = 0;
+
+if (strength < 0.003) {
+  regime = "Choppy";
+  regimePenalty += 10;
+}
+
+if (strength >= 0.003 && strength < 0.01) {
+  regime = "Range";
+  regimePenalty += 4;
+}
+
+if (strength >= 0.01) {
+  regime = "Trending";
+}
+
 let volatilityPenalty = 0;
 
 if (strength < 0.01) {
