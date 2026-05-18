@@ -13,7 +13,31 @@ const HISTORY_FILE = "./trade-history.json";
 const TWELVEDATA_API_KEY = process.env.TWELVEDATA_API_KEY || "";
 const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY || "";
 const POLYGON_API_KEY = process.env.POLYGON_API_KEY || "";
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || "";
 const TWELVEDATA_DAILY_LIMIT = 750;
+
+async function sendTelegramAlert(message) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+
+  try {
+    await fetch(
+      `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: message
+        })
+      }
+    );
+  } catch (err) {
+    console.error("Telegram alert failed:", err.message);
+  }
+}
 
 let twelveDataDailyCount = 0;
 let twelveDataDay = new Date().toISOString().slice(0, 10);
