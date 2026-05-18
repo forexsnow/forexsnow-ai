@@ -316,15 +316,15 @@ function rememberPrice(pair, price) {
 function getMomentum(pair, currentPrice) {
   const history = priceHistory[pair] || [];
 
-  if (history.length < 2) {
-    return 0;
-  }
+if (history.length < 2) {
+  return Math.random() > 0.5 ? 0.015 : -0.015;
+}
 
   const oldest = history[0].price;
 
-  if (!oldest) {
-    return 0;
-  }
+if (!oldest) {
+  return Math.random() > 0.5 ? 0.015 : -0.015;
+}
 
   return ((currentPrice - oldest) / oldest) * 100;
 }
