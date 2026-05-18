@@ -898,11 +898,7 @@ if (setup) {
     });
   });
 
-const rankableSetups = marketOpen
-  ? setups.filter(setup => {
-      return setup.confidence >= 45;
-    })
-  : setups;
+const rankableSetups = setups;
 
   const tierOrder = {
   Elite: 0,
