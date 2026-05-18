@@ -991,7 +991,7 @@ if (marketOpen && rankings.length > 0) {
 
 buildSnapshot();
 
-setInterval(buildSnapshot, REFRESH_MS);
+setInterval(buildSnapshot, ACTIVE_REFRESH_MS);
 
 app.get("/api/snapshot", (req, res) => {
   res.json(snapshot);
