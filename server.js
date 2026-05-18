@@ -880,6 +880,21 @@ const rankings = rankableSetups
       ...item
     }));
 
+  const eliteSetup = rankings.find(item => item.confidence >= 80);
+
+if (eliteSetup) {
+  const eliteKey =
+    `${eliteSetup.pair}-${eliteSetup.bias}-${eliteSetup.confidence}`;
+
+  if (eliteKey !== lastEliteAlertKey) {
+    lastEliteAlertKey = eliteKey;
+
+    console.log(
+      `ELITE FOREXSNOW ALERT: ${eliteSetup.pair} ${eliteSetup.bias} ${eliteSetup.confidence}%`
+    );
+  }
+}
+
   const bullishCount = rankings.filter(item => item.bias === "Bullish").length;
   const bearishCount = rankings.filter(item => item.bias === "Bearish").length;
 
