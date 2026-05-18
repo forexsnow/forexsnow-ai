@@ -524,8 +524,8 @@ const confidence = Math.min(
   Math.max(
     40,
     Math.round(
-      58 +
-strength * 180 +
+      52 +
+strength * 260 +
 historyBoost +
 consensusBoost +
 sessionBoost +
