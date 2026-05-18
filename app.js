@@ -1,5 +1,5 @@
-const REFRESH_MS = 5 * 60 * 1000;
-const REFRESH_LABEL = "5 minutes";
+const REFRESH_MS = 15 * 60 * 1000;
+const REFRESH_LABEL = "15 minutes";
 
 let nextRefreshAt = Date.now() + REFRESH_MS;
 
