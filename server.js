@@ -355,7 +355,7 @@ function rememberPrice(pair, price) {
   });
 
   priceHistory[pair] = priceHistory[pair].filter(point => {
-    return Date.now() - point.time <= 60 * 60 * 1000;
+    return Date.now() - point.time <= 60 * 60 * 100;
   });
 }
 
