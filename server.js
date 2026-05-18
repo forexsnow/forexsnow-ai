@@ -266,7 +266,53 @@ async function fetchPolygonPrice(symbol) {
 
   return price;
 }
+async function fetchOandaPrice(pair) {
+  const apiKey = process.env.OANDA_API_KEY;
+  const accountId = process.env.OANDA_ACCOUNT_ID;
+  const env = process.env.OANDA_ENV || "practice";
 
+  if (!apiKey || !accountId) {
+    throw new Error("Missing OANDA credentials");
+  }
+
+  const host =
+    env === "live"
+      ? "https://api-fxtrade.oanda.com"
+      : "https://api-fxpractice.oanda.com";
+
+  const instrument = pair.replace("/", "_");
+
+  const response = await fetch(
+    `${host}/v3/accounts/${accountId}/pricing?instruments=${instrument}`,
+    {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`OANDA request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  const priceData = data.prices?.[0];
+
+  if (!priceData) {
+    throw new Error("No OANDA pricing data");
+  }
+
+  const bid = parseFloat(priceData.bids?.[0]?.price);
+  const ask = parseFloat(priceData.asks?.[0]?.price);
+
+  if (!bid || !ask) {
+    throw new Error("Invalid OANDA bid/ask");
+  }
+
+  return (bid + ask) / 2;
+}
 async function fetchStooqPrice(symbol) {
   const url = `https://stooq.com/q/l/?s=${symbol}&f=sd2t2ohlcv&h&e=csv`;
 
