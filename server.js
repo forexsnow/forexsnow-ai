@@ -568,7 +568,7 @@ if (
   
 const qualificationScore =
   42 +
-  Math.min(24, Math.round(strength * 90)) +
+  Math.min(34, Math.round(strength * 140)) +
   consensusBoost +
   sessionBoost +
   Math.max(0, historyBoost) +
