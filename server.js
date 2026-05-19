@@ -577,7 +577,7 @@ const consensusAligned =
   consensusStrength >= 2;
 
 const momentumAligned =
-  strength > 0.14 &&
+  strength > 0.12 &&
   regime === "Trending";
   
 const alignmentBonus =
@@ -590,7 +590,7 @@ const alignmentBonus =
       : 0;  
   
 const qualificationScore =
-  40 +
+  48 +
   Math.min(34, Math.round(strength * 140)) +
   consensusBoost +
   sessionBoost +
