@@ -584,13 +584,13 @@ const alignmentBonus =
   momentumAligned &&
   consensusAligned &&
   persistenceAligned
-      ? 22
+      ? 14
     : momentumAligned && consensusAligned
       ? 8
       : 0;  
   
 const qualificationScore =
-  48 +
+  40 +
   Math.min(34, Math.round(strength * 140)) +
   consensusBoost +
   sessionBoost +
