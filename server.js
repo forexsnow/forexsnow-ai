@@ -565,6 +565,14 @@ if (
     }
   }
 }
+
+const alignmentBonus =
+  strength > 0.12 &&
+  sourceMode === "Consensus" &&
+  dataAgeStatus === "Verified" &&
+  regime === "Trending"
+    ? 10
+    : 0;  
   
 const qualificationScore =
   42 +
@@ -572,7 +580,8 @@ const qualificationScore =
   consensusBoost +
   sessionBoost +
   Math.max(0, historyBoost) +
-  Math.max(0, reopenAdjustment);
+  Math.max(0, reopenAdjustment) +
+alignmentBonus;
 
 const qualityPenalty =
   Math.round(
