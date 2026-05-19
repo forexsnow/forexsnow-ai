@@ -548,7 +548,7 @@ if (
   );
 
   if (previous) {
-    const oldEntry = Number(previous.entry);
+    const oldEntry = Number(previous.lastPrice || previous.entry);
 
     if (Number.isFinite(oldEntry)) {
       const reopenMove = bullish
@@ -566,22 +566,29 @@ if (
   }
 }
   
+const qualificationScore =
+  42 +
+  Math.min(24, Math.round(strength * 90)) +
+  consensusBoost +
+  sessionBoost +
+  Math.max(0, historyBoost) +
+  Math.max(0, reopenAdjustment);
+
+const qualityPenalty =
+  Math.round(
+    (confidencePenalty +
+      volatilityPenalty +
+      cooldownPenalty +
+      regimePenalty +
+      Math.max(0, -historyBoost) +
+      Math.max(0, -reopenAdjustment)) * 0.45
+  );
+
 const confidence = Math.min(
   96,
   Math.max(
     40,
-    Math.round(
-      52 +
-strength * 260 +
-historyBoost +
-consensusBoost +
-sessionBoost +
-reopenAdjustment -
-confidencePenalty -
-volatilityPenalty -
-cooldownPenalty -
-regimePenalty
-    )
+    Math.round(qualificationScore - qualityPenalty)
   )
 );
   const tier = getConfidenceTier(confidence);
