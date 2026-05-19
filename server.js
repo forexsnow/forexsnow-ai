@@ -363,17 +363,61 @@ function rememberPrice(pair, price) {
 function getMomentum(pair, currentPrice) {
   const history = priceHistory[pair] || [];
 
-  if (history.length < 2) {
-    return 0;
-  }
+if (history.length < 2) {
+  return Math.random() > 0.5 ? 0.08 : -0.08;
+}
 
   const oldest = history[0].price;
 
-  if (!oldest) {
+if (!oldest) {
+  return Math.random() > 0.5 ? 0.08 : -0.08;
+}
+
+  return ((currentPrice - oldest) / oldest) * 1000;
+}
+
+function getConfidenceEvolutionAdjustment(pair, bias) {
+  const historicalPlays = tradeHistory
+    .flatMap(entry => entry.rankings || [])
+    .filter(play => {
+      return (
+        play.pair === pair &&
+        play.bias === bias &&
+        (play.status === "WIN" || play.status === "LOSS")
+      );
+    });
+
+  if (historicalPlays.length < 5) {
     return 0;
   }
 
-  return ((currentPrice - oldest) / oldest) * 1000;
+  const wins = historicalPlays.filter(play => play.status === "WIN").length;
+  const winRate = wins / historicalPlays.length;
+
+  if (historicalPlays.length >= 20) {
+  if (winRate >= 0.75) return 10;
+  if (winRate >= 0.65) return 6;
+  if (winRate >= 0.55) return 3;
+
+  if (winRate <= 0.30) return -10;
+  if (winRate <= 0.40) return -6;
+  if (winRate <= 0.48) return -3;
+}
+
+if (winRate >= 0.7) return 6;
+if (winRate >= 0.6) return 3;
+
+if (winRate <= 0.35) return -6;
+if (winRate <= 0.45) return -3;
+
+  return 0;
+}
+
+function getConfidenceTier(confidence) {
+if (confidence >= 92) return "Elite";
+if (confidence >= 78) return "High";
+if (confidence >= 62) return "Medium";
+  return "Low";
 }
 
 function buildTradeSetup(
@@ -385,196 +429,223 @@ function buildTradeSetup(
   dataAgeStatus,
   marketOpen
 ) {
-  if (momentum === 0) {
-    return null;
-  }
 
-  const bullish = momentum > 0;
 
+const bullish = momentum > 0;
   const recentPlay = tradeHistory
-    .flatMap(entry => entry.rankings || [])
-    .find(play => play.pair === pair);
+  .flatMap(entry => entry.rankings || [])
+  .find(play => play.pair === pair);
 
-  let cooldownPenalty = 0;
+let cooldownPenalty = 0;
 
-  if (
-    recentPlay &&
-    recentPlay.bias !== (bullish ? "Bullish" : "Bearish")
-  ) {
-    const ageMinutes =
-      (Date.now() - new Date(recentPlay.createdAt).getTime()) / 60000;
+if (
+  recentPlay &&
+  recentPlay.bias !== (bullish ? "Bullish" : "Bearish")
+) {
+  const ageMinutes =
+    (Date.now() - new Date(recentPlay.createdAt).getTime()) / 60000;
 
-    if (ageMinutes < 60) {
-      cooldownPenalty += 12;
-    }
+  if (ageMinutes < 60) {
+    cooldownPenalty += 12;
   }
-
+}
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
 
-  const history = priceHistory[pair] || [];
+const history = priceHistory[pair] || [];
 
-  const recentPrices = history.slice(-6).map(p => p.price);
+const recentPrices = history.slice(-6).map(p => p.price);
 
-  const averageRange =
-    recentPrices.length >= 2
-      ? Math.abs(
-          recentPrices[recentPrices.length - 1] -
-          recentPrices[0]
-        )
-      : 0;
+const averageRange =
+  recentPrices.length >= 2
+    ? Math.abs(
+        recentPrices[recentPrices.length - 1] -
+        recentPrices[0]
+      )
+    : 0;
+  
+let structureScore = 0;
 
-  let structureScore = 0;
+if (recentPrices.length >= 6) {
+  const highs =
+    recentPrices[5] > recentPrices[4] &&
+    recentPrices[4] > recentPrices[3];
 
-  if (recentPrices.length >= 6) {
-    const highs =
-      recentPrices[5] > recentPrices[4] &&
-      recentPrices[4] > recentPrices[3];
+  const lows =
+    recentPrices[3] > recentPrices[2] &&
+    recentPrices[2] > recentPrices[1];
 
-    const lows =
-      recentPrices[3] > recentPrices[2] &&
-      recentPrices[2] > recentPrices[1];
+  const bearishHighs =
+    recentPrices[5] < recentPrices[4] &&
+    recentPrices[4] < recentPrices[3];
 
-    const bearishHighs =
-      recentPrices[5] < recentPrices[4] &&
-      recentPrices[4] < recentPrices[3];
+  const bearishLows =
+    recentPrices[3] < recentPrices[2] &&
+    recentPrices[2] < recentPrices[1];
 
-    const bearishLows =
-      recentPrices[3] < recentPrices[2] &&
-      recentPrices[2] < recentPrices[1];
-
-    if (bullish && highs && lows) {
-      structureScore += 12;
-    }
-
-    if (!bullish && bearishHighs && bearishLows) {
-      structureScore += 12;
-    }
+  if (bullish && highs && lows) {
+    structureScore += 12;
   }
 
+  if (!bullish && bearishHighs && bearishLows) {
+    structureScore += 12;
+  }
+}
+  
   let regime = "Balanced";
-  let regimePenalty = 0;
+let regimePenalty = 0;
 
-  if (strength < 0.003) {
-    regime = "Choppy";
-    regimePenalty += 10;
-  }
+if (strength < 0.003) {
+  regime = "Choppy";
+  regimePenalty += 10;
+}
 
-  if (strength >= 0.003 && strength < 0.01) {
-    regime = "Range";
-    regimePenalty += 4;
-  }
+if (strength >= 0.003 && strength < 0.01) {
+  regime = "Range";
+  regimePenalty += 4;
+}
 
-  if (strength >= 0.01) {
-    regime = "Trending";
-  }
+if (strength >= 0.01) {
+  regime = "Trending";
+}
 
-  let volatilityPenalty = 0;
+let volatilityPenalty = 0;
 
-  if (averageRange < price * 0.0015) {
-    volatilityPenalty += 8;
-  }
+if (averageRange < price * 0.0015) {
+  volatilityPenalty += 8;
+}
 
-  if (strength < 0.005) {
-    volatilityPenalty += 6;
-  }
-
-  const historyBoost =
-    getConfidenceEvolutionAdjustment(pair, bias);
+if (strength < 0.005) {
+  volatilityPenalty += 6;
+}
+  
+  const historyBoost = getConfidenceEvolutionAdjustment(pair, bias);
 
   let confidencePenalty = 0;
 
-  if (!marketOpen) {
-    confidencePenalty += 8;
-  }
+if (!marketOpen) {
+  confidencePenalty += 8;
+}
 
-  if (sourceMode === "Single Source") {
-    confidencePenalty += 10;
-  }
+if (sourceMode === "Single Source") {
+  confidencePenalty += 10;
+}
 
-  if (sourceMode === "Last Known") {
-    confidencePenalty += 18;
-  }
+if (sourceMode === "Last Known") {
+  confidencePenalty += 18;
+}
 
-  if (consensusStrength <= 1) {
-    confidencePenalty += 10;
-  }
+if (consensusStrength <= 1) {
+  confidencePenalty += 10;
+}
 
-  if (consensusStrength === 2) {
-    confidencePenalty += 4;
-  }
+if (consensusStrength === 2) {
+  confidencePenalty += 4;
+}
 
-  if (dataAgeStatus === "Unverified") {
-    confidencePenalty += 6;
-  }
-
+if (dataAgeStatus === "Unverified") {
+  confidencePenalty += 6;
+}
   let consensusBoost = 0;
 
-  if (sourceMode === "Consensus") {
-    consensusBoost += 10;
-  }
+if (sourceMode === "Consensus") {
+  consensusBoost += 10;
+}
 
-  if (dataAgeStatus === "Verified") {
-    consensusBoost += 6;
-  }
+if (dataAgeStatus === "Verified") {
+  consensusBoost += 6;
+}
 
-  if (marketOpen) {
-    consensusBoost += 4;
-  }
+if (marketOpen) {
+  consensusBoost += 4;
+}
 
-  let sessionBoost = 0;
+let sessionBoost = 0;
 
-  const hour = new Date().getUTCHours();
+const hour = new Date().getUTCHours();
 
-  if (hour >= 7 && hour <= 11) {
-    sessionBoost += 12;
-  }
+if (hour >= 7 && hour <= 11) {
+  sessionBoost += 8;
+}
 
-  if (hour >= 12 && hour <= 16) {
-    sessionBoost += 15;
-  }
+if (hour >= 12 && hour <= 16) {
+  sessionBoost += 10;
+}
 
-  if (hour >= 0 && hour <= 5) {
-    sessionBoost -= 6;
-  }
+if (hour >= 0 && hour <= 5) {
+  sessionBoost -= 6;
+}
 
-  let reopenAdjustment = 0;
+let reopenAdjustment = 0;
 
-  if (
-    lastLiveSnapshot &&
-    marketOpen &&
-    lastLiveSnapshot.rankings?.length
-  ) {
-    const previous = lastLiveSnapshot.rankings.find(
-      item => item.pair === pair
-    );
+if (
+  lastLiveSnapshot &&
+  marketOpen &&
+  lastLiveSnapshot.rankings?.length
+) {
+  const previous = lastLiveSnapshot.rankings.find(
+    item => item.pair === pair
+  );
 
-    if (previous) {
-      const oldEntry = Number(previous.lastPrice);
+  if (previous) {
+    const oldEntry = Number(previous.entry);
 
-      if (Number.isFinite(oldEntry)) {
-        const reopenMove = bullish
-          ? price - oldEntry
-          : oldEntry - price;
+    if (Number.isFinite(oldEntry)) {
+      const reopenMove = bullish
+        ? price - oldEntry
+        : oldEntry - price;
 
-        if (reopenMove > 0) {
-          reopenAdjustment += 4;
-        }
+      if (reopenMove > 0) {
+        reopenAdjustment += 4;
+      }
 
-        if (reopenMove < 0) {
-          reopenAdjustment -= 6;
-        }
+      if (reopenMove < 0) {
+        reopenAdjustment -= 6;
       }
     }
   }
-
+}
+  
+const confidence = Math.min(
+  96,
+  Math.max(
+    40,
+    Math.round(
+      52 +
+strength * 260 +
+historyBoost +
+consensusBoost +
+sessionBoost +
+reopenAdjustment +
+structureScore +
+rrBoost -
+confidencePenalty -
+volatilityPenalty -
+cooldownPenalty -
+regimePenalty
+    )
+  )
+);
+  const tier = getConfidenceTier(confidence);
   const isJpy = pair.includes("JPY");
 
   const stopDistance = isJpy ? 0.55 : 0.0055;
   const targetDistance = isJpy ? 0.99 : 0.0099;
 
-  const entry =
-    isJpy ? price.toFixed(3) : price.toFixed(5);
+const risk = stopDistance;
+const reward = targetDistance;
+
+let rrBoost = 0;
+
+if (reward / risk >= 2) {
+  rrBoost += 6;
+}
+
+if (reward / risk >= 2.5) {
+  rrBoost += 4;
+}
+  
+  const entry = isJpy ? price.toFixed(3) : price.toFixed(5);
 
   const stopLoss = isJpy
     ? bullish
@@ -592,66 +663,40 @@ function buildTradeSetup(
       ? (price + targetDistance).toFixed(5)
       : (price - targetDistance).toFixed(5);
 
-  const risk =
-    Math.abs(price - Number(stopLoss));
+const risk = Math.abs(price - Number(stopLoss));
 
-  const reward =
-    Math.abs(Number(takeProfit) - price);
+const reward = Math.abs(Number(takeProfit) - price);
 
-  const rr = reward / risk;
+const rr = reward / risk;
 
-  if (rr < 1.5) {
-    return null;
-  }
+let rrBoost = 0;
 
-  let rrBoost = 0;
+if (rr >= 3) {
+  rrBoost += 10;
+} else if (rr >= 2) {
+  rrBoost += 6;
+} else if (rr >= 1.5) {
+  rrBoost += 3;
+}  
 
-  if (rr >= 3) {
-    rrBoost += 10;
-  } else if (rr >= 2) {
-    rrBoost += 6;
-  } else if (rr >= 1.5) {
-    rrBoost += 3;
-  }
-
-  const confidence = Math.min(
-    96,
-    Math.max(
-      40,
-      Math.round(
-        52 +
-        strength * 260 +
-        historyBoost +
-        consensusBoost +
-        sessionBoost +
-        reopenAdjustment +
-        structureScore +
-        rrBoost -
-        confidencePenalty -
-        volatilityPenalty -
-        cooldownPenalty -
-        regimePenalty
-      )
-    )
-  );
-
-  const tier =
-    getConfidenceTier(confidence);
-
+if (rr < 1.5) {
+  return null;
+}
+  
   return {
-    pair,
-    lastPrice: entry,
-    bias,
-    confidence,
-    tier,
-    structureScore,
-    rrBoost,
-    historyBoost,
-    consensusBoost,
-    sessionBoost,
-    regimePenalty,
-    volatilityPenalty,
-    cooldownPenalty,
+  pair,
+  lastPrice: entry,
+  bias,
+  confidence,
+  tier,
+  structureScore,
+rrBoost,
+historyBoost,
+  consensusBoost,
+  sessionBoost,
+  regimePenalty,
+  volatilityPenalty,
+  cooldownPenalty,
     stopLoss,
     takeProfit,
     getOutPoint: bullish
@@ -987,9 +1032,12 @@ const rankableSetups = setups;
 
 const rankings = rankableSetups
   .sort((a, b) => {
-  if (tierOrder[a.tier] !== tierOrder[b.tier]) {
-    return tierOrder[a.tier] - tierOrder[b.tier];
-  }
+    if (tierOrder[a.tier] !== tierOrder[b.tier]) {
+      return tierOrder[a.tier] - tierOrder[b.tier];
+    }
+
+    return b.score - a.score;
+  })
 
   return b.confidence - a.confidence;
 })
@@ -1011,7 +1059,7 @@ const eliteAlerts = rankings.filter(item => {
 
 for (const alert of eliteAlerts) {
   await sendTelegramAlert(
-    `ð¨ ForexSnow Elite Signal
+    `Ã°ÂÂÂ¨ ForexSnow Elite Signal
 
 Pair: ${alert.pair}
 Bias: ${alert.bias}
