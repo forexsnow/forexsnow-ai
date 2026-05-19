@@ -5,7 +5,7 @@ import fs from "fs";
 const app = express();
 
 const PORT = process.env.PORT || 3000;
-const ACTIVE_REFRESH_MS = 15 * 60 * 1000;
+const ACTIVE_REFRESH_MS = 10 * 60 * 1000;
 const SLOW_REFRESH_MS = 30 * 60 * 1000;
 const REFRESH_MS = ACTIVE_REFRESH_MS;
 const HISTORY_FILE = "./trade-history.json";
@@ -456,23 +456,39 @@ const history = priceHistory[pair] || [];
 
 const recentPrices = history.slice(-6).map(p => p.price);
 
+const averageRange =
+  recentPrices.length >= 2
+    ? Math.abs(
+        recentPrices[recentPrices.length - 1] -
+        recentPrices[0]
+      )
+    : 0;
+  
 let structureScore = 0;
 
-if (recentPrices.length >= 4) {
-  const rising =
+if (recentPrices.length >= 6) {
+  const highs =
     recentPrices[5] > recentPrices[4] &&
     recentPrices[4] > recentPrices[3];
 
-  const falling =
+  const lows =
+    recentPrices[3] > recentPrices[2] &&
+    recentPrices[2] > recentPrices[1];
+
+  const bearishHighs =
     recentPrices[5] < recentPrices[4] &&
     recentPrices[4] < recentPrices[3];
 
-  if (bullish && rising) {
-    structureScore += 8;
+  const bearishLows =
+    recentPrices[3] < recentPrices[2] &&
+    recentPrices[2] < recentPrices[1];
+
+  if (bullish && highs && lows) {
+    structureScore += 12;
   }
 
-  if (!bullish && falling) {
-    structureScore += 8;
+  if (!bullish && bearishHighs && bearishLows) {
+    structureScore += 12;
   }
 }
   
@@ -495,7 +511,7 @@ if (strength >= 0.01) {
 
 let volatilityPenalty = 0;
 
-if (strength < 0.01) {
+if (averageRange < price * 0.0015) {
   volatilityPenalty += 8;
 }
 
@@ -601,7 +617,8 @@ historyBoost +
 consensusBoost +
 sessionBoost +
 reopenAdjustment +
-structureScore -
+structureScore +
+rrBoost -
 confidencePenalty -
 volatilityPenalty -
 cooldownPenalty -
@@ -615,6 +632,19 @@ regimePenalty
   const stopDistance = isJpy ? 0.55 : 0.0055;
   const targetDistance = isJpy ? 0.99 : 0.0099;
 
+const risk = stopDistance;
+const reward = targetDistance;
+
+let rrBoost = 0;
+
+if (reward / risk >= 2) {
+  rrBoost += 6;
+}
+
+if (reward / risk >= 2.5) {
+  rrBoost += 4;
+}
+  
   const entry = isJpy ? price.toFixed(3) : price.toFixed(5);
 
   const stopLoss = isJpy
@@ -639,16 +669,34 @@ const reward = Math.abs(Number(takeProfit) - price);
 
 const rr = reward / risk;
 
+let rrBoost = 0;
+
+if (rr >= 3) {
+  rrBoost += 10;
+} else if (rr >= 2) {
+  rrBoost += 6;
+} else if (rr >= 1.5) {
+  rrBoost += 3;
+}  
+
 if (rr < 1.5) {
   return null;
 }
   
   return {
-    pair,
-lastPrice: entry,
-bias,
-confidence,
-tier,
+  pair,
+  lastPrice: entry,
+  bias,
+  confidence,
+  tier,
+  structureScore,
+rrBoost,
+historyBoost,
+  consensusBoost,
+  sessionBoost,
+  regimePenalty,
+  volatilityPenalty,
+  cooldownPenalty,
     stopLoss,
     takeProfit,
     getOutPoint: bullish
@@ -995,9 +1043,16 @@ const rankings = rankableSetups
       ...item
     }));
 
-const eliteAlerts = rankings.filter(
-  item => item.confidence >= 80
-);
+const eliteAlerts = rankings.filter(item => {
+  const uniqueKey =
+    `${item.pair}-${item.bias}-${item.confidence}`;
+
+  if (uniqueKey === lastEliteAlertKey) {
+    return false;
+  }
+
+  return item.confidence >= 80;
+});
 
 for (const alert of eliteAlerts) {
   await sendTelegramAlert(
