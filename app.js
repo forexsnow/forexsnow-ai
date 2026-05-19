@@ -24,7 +24,7 @@ async function loadSnapshot() {
     }
 
     window.latestSnapshot = data;
-    nextRefreshAt = Date.now() + REFRESH_MS;
+    nextRefreshAt = new Date(data.nextUpdateAt).getTime();
 
     const bullish = data.bullishRankings || [];
 const bearish = data.bearishRankings || [];
