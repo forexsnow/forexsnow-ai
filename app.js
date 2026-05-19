@@ -24,11 +24,7 @@ async function loadSnapshot() {
     }
 
     window.latestSnapshot = data;
-    const serverNextUpdate = new Date(data.nextUpdateAt).getTime();
-
-nextRefreshAt = Number.isFinite(serverNextUpdate)
-  ? serverNextUpdate
-  : Date.now() + REFRESH_MS;
+    nextRefreshAt = Date.now() + REFRESH_MS;
 
     const bullish = data.bullishRankings || [];
 const bearish = data.bearishRankings || [];
@@ -89,7 +85,7 @@ function copyPlay(button, encodedPlay) {
 
   navigator.clipboard.writeText(text).then(() => {
     const originalText = button.textContent;
-    button.textContent = "Copied ✓";
+    button.textContent = "Copied â";
 
     setTimeout(() => {
       button.textContent = originalText;
@@ -196,4 +192,4 @@ function updateRefreshCountdown() {
 }
 
 document.getElementById("footerText").innerHTML =
-  `© ${new Date().getFullYear()} ForexSnow AI • Live Snapshot Engine • Updated every ${REFRESH_LABEL}`;
+  `Â© ${new Date().getFullYear()} ForexSnow AI â¢ Live Snapshot Engine â¢ Updated every ${REFRESH_LABEL}`;
