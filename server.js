@@ -538,12 +538,14 @@ if (hour >= 0 && hour <= 5) {
 
 let reopenAdjustment = 0;
 
+let previous = null;
+  
 if (
   lastLiveSnapshot &&
   marketOpen &&
   lastLiveSnapshot.rankings?.length
 ) {
-  const previous = lastLiveSnapshot.rankings.find(
+  previous = lastLiveSnapshot.rankings.find(
     item => item.pair === pair
   );
 
