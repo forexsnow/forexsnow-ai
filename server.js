@@ -565,14 +565,27 @@ if (
     }
   }
 }
+  
+const persistenceAligned =
+  previous && previous.bias === bias;
 
-const alignmentBonus =
-  strength > 0.12 &&
+const consensusAligned =
   sourceMode === "Consensus" &&
   dataAgeStatus === "Verified" &&
-  regime === "Trending"
-    ? 10
-    : 0;  
+  consensusStrength >= 2;
+
+const momentumAligned =
+  strength > 0.12 &&
+  regime === "Trending";
+  
+const alignmentBonus =
+  momentumAligned &&
+  consensusAligned &&
+  persistenceAligned
+    ? 14
+    : momentumAligned && consensusAligned
+      ? 8
+      : 0;  
   
 const qualificationScore =
   42 +
