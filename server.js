@@ -50,6 +50,7 @@ let snapshot = null;
 let lastLiveSnapshot = null;
 let updateCount = 0;
 let tradeHistory = [];
+let lastEliteAlertKey = "";
 
 try {
   const raw = fs.readFileSync(HISTORY_FILE, "utf-8");
@@ -355,7 +356,7 @@ function rememberPrice(pair, price) {
   });
 
   priceHistory[pair] = priceHistory[pair].filter(point => {
-    return Date.now() - point.time <= 60 * 60 * 100;
+    return Date.now() - point.time <= 60 * 60 * 1000;
   });
 }
 
@@ -372,7 +373,7 @@ if (!oldest) {
   return Math.random() > 0.5 ? 0.08 : -0.08;
 }
 
-  return ((currentPrice - oldest) / oldest) * 100;
+  return ((currentPrice - oldest) / oldest) * 1000;
 }
 
 function getConfidenceEvolutionAdjustment(pair, bias) {
