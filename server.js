@@ -538,19 +538,17 @@ if (hour >= 0 && hour <= 5) {
 
 let reopenAdjustment = 0;
 
-let previous = null;
-  
 if (
   lastLiveSnapshot &&
   marketOpen &&
   lastLiveSnapshot.rankings?.length
 ) {
-  previous = lastLiveSnapshot.rankings.find(
+  const previous = lastLiveSnapshot.rankings.find(
     item => item.pair === pair
   );
 
   if (previous) {
-    const oldEntry = Number(previous.lastPrice || previous.entry);
+    const oldEntry = Number(previous.entry);
 
     if (Number.isFinite(oldEntry)) {
       const reopenMove = bullish
@@ -568,51 +566,22 @@ if (
   }
 }
   
-const persistenceAligned =
-  previous && previous.bias === bias;
-
-const consensusAligned =
-  sourceMode === "Consensus" &&
-  dataAgeStatus === "Verified" &&
-  consensusStrength >= 2;
-
-const momentumAligned =
-  strength > 0.12 &&
-  regime === "Trending";
-  
-const alignmentBonus =
-  momentumAligned &&
-  consensusAligned &&
-  persistenceAligned
-      ? 22
-    : momentumAligned && consensusAligned
-      ? 14
-      : 0;  
-  
-const qualificationScore =
-  40 +
-  Math.min(34, Math.round(strength * 140)) +
-  consensusBoost +
-  sessionBoost +
-  Math.max(0, historyBoost) +
-  Math.max(0, reopenAdjustment) +
-alignmentBonus;
-
-const qualityPenalty =
-  Math.round(
-    (confidencePenalty +
-      volatilityPenalty +
-      cooldownPenalty +
-      regimePenalty +
-      Math.max(0, -historyBoost) +
-      Math.max(0, -reopenAdjustment)) * 0.45
-  );
-
 const confidence = Math.min(
   96,
   Math.max(
     40,
-    Math.round(qualificationScore - qualityPenalty)
+    Math.round(
+      52 +
+strength * 260 +
+historyBoost +
+consensusBoost +
+sessionBoost +
+reopenAdjustment -
+confidencePenalty -
+volatilityPenalty -
+cooldownPenalty -
+regimePenalty
+    )
   )
 );
   const tier = getConfidenceTier(confidence);
@@ -997,7 +966,7 @@ const eliteAlerts = rankings.filter(
 
 for (const alert of eliteAlerts) {
   await sendTelegramAlert(
-    `🚨 ForexSnow Elite Signal
+    `ð¨ ForexSnow Elite Signal
 
 Pair: ${alert.pair}
 Bias: ${alert.bias}
