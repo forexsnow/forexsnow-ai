@@ -364,13 +364,11 @@ function getMomentum(pair, currentPrice) {
   const history = priceHistory[pair] || [];
 
 if (history.length < 2) {
-  return Math.random() > 0.5 ? 0.08 : -0.08;
+  return 0;
 }
 
-  const oldest = history[0].price;
-
 if (!oldest) {
-  return Math.random() > 0.5 ? 0.08 : -0.08;
+  return 0;
 }
 
   return ((currentPrice - oldest) / oldest) * 1000;
@@ -414,9 +412,9 @@ if (winRate <= 0.45) return -3;
 }
 
 function getConfidenceTier(confidence) {
-  if (confidence >= 85) return "Elite";
-  if (confidence >= 72) return "High";
-  if (confidence >= 58) return "Medium";
+if (confidence >= 92) return "Elite";
+if (confidence >= 78) return "High";
+if (confidence >= 62) return "Medium";
   return "Low";
 }
 
@@ -451,6 +449,30 @@ if (
 }
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
+
+  const history = priceHistory[pair] || [];
+
+const recentPrices = history.slice(-6).map(p => p.price);
+
+let structureScore = 0;
+
+if (recentPrices.length >= 4) {
+  const rising =
+    recentPrices[5] > recentPrices[4] &&
+    recentPrices[4] > recentPrices[3];
+
+  const falling =
+    recentPrices[5] < recentPrices[4] &&
+    recentPrices[4] < recentPrices[3];
+
+  if (bullish && rising) {
+    structureScore += 8;
+  }
+
+  if (!bullish && falling) {
+    structureScore += 8;
+  }
+}
 
   let regime = "Balanced";
 let regimePenalty = 0;
@@ -525,13 +547,13 @@ let sessionBoost = 0;
 const hour = new Date().getUTCHours();
 
 if (hour >= 7 && hour <= 11) {
-  sessionBoost += 8;
+  sessionBoost += 12;
 }
 
 if (hour >= 12 && hour <= 16) {
-  sessionBoost += 10;
+  sessionBoost += 15;
 }
-
+  
 if (hour >= 0 && hour <= 5) {
   sessionBoost -= 6;
 }
@@ -576,7 +598,8 @@ strength * 260 +
 historyBoost +
 consensusBoost +
 sessionBoost +
-reopenAdjustment -
+reopenAdjustment +
+structureScore -
 confidencePenalty -
 volatilityPenalty -
 cooldownPenalty -
@@ -601,14 +624,24 @@ regimePenalty
       : (price + stopDistance).toFixed(5);
 
   const takeProfit = isJpy
-    ? bullish
-      ? (price + targetDistance).toFixed(3)
-      : (price - targetDistance).toFixed(3)
-    : bullish
-      ? (price + targetDistance).toFixed(5)
-      : (price - targetDistance).toFixed(5);
+  ? bullish
+    ? (price + targetDistance).toFixed(3)
+    : (price - targetDistance).toFixed(3)
+  : bullish
+    ? (price + targetDistance).toFixed(5)
+    : (price - targetDistance).toFixed(5);
 
-  return {
+const risk = Math.abs(price - Number(stopLoss));
+
+const reward = Math.abs(Number(takeProfit) - price);
+
+const rr = reward / risk;
+
+if (rr < 1.5) {
+  return null;
+}
+
+return {
     pair,
 lastPrice: entry,
 bias,
@@ -637,6 +670,16 @@ function evaluateTradeOutcome(play, latestPrice) {
   const takeProfit = Number(play.takeProfit);
   const stopLoss = Number(play.stopLoss);
   const current = Number(latestPrice);
+
+  const risk = Math.abs(price - Number(stopLoss));
+
+const reward = Math.abs(Number(takeProfit) - price);
+
+const rr = reward / risk;
+
+if (rr < 1.5) {
+  return null;
+}
 
   if (
     !Number.isFinite(takeProfit) ||
@@ -938,7 +981,7 @@ if (setup) {
     });
   });
 
-const rankableSetups = setups;
+const rankableSetups = setups.filter(Boolean);
 
   const tierOrder = {
   Elite: 0,
