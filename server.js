@@ -577,14 +577,14 @@ const consensusAligned =
   consensusStrength >= 2;
 
 const momentumAligned =
-  strength > 0.12 &&
+  strength > 0.14 &&
   regime === "Trending";
   
 const alignmentBonus =
   momentumAligned &&
   consensusAligned &&
   persistenceAligned
-      ? 14
+      ? 22
     : momentumAligned && consensusAligned
       ? 8
       : 0;  
