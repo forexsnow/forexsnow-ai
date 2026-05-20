@@ -1,7 +1,7 @@
 const REFRESH_MS = 15 * 60 * 1000;
 const REFRESH_LABEL = "15 minutes";
 
-let nextRefreshAt = new Date(data.nextUpdateAt).getTime();
+let nextRefreshAt = Date.now() + REFRESH_MS;
 
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
@@ -40,21 +40,17 @@ const bearishTop = data.topBearishPick || null;
     document.getElementById("updatePill").textContent =
       `Updates: ${data.updateCount}`;
 
-    if (bullishTop) {
-      document.getElementById("forecastConfidence").textContent =
-        `${bullishTop.confidence}%`;
+    document.getElementById("forecastConfidence").textContent =
+      bullishTop ? `${bullishTop.confidence}%` : "0%";
 
-      document.getElementById("bullishProgressFill").style.width =
-        `${bullishTop.confidence}%`;
-    }
+    document.getElementById("bullishProgressFill").style.width =
+      bullishTop ? `${bullishTop.confidence}%` : "0%";
 
-    if (bearishTop) {
-      document.getElementById("bearishForecastConfidence").textContent =
-        `${bearishTop.confidence}%`;
+    document.getElementById("bearishForecastConfidence").textContent =
+      bearishTop ? `${bearishTop.confidence}%` : "0%";
 
-      document.getElementById("bearishProgressFill").style.width =
-        `${bearishTop.confidence}%`;
-    }
+    document.getElementById("bearishProgressFill").style.width =
+      bearishTop ? `${bearishTop.confidence}%` : "0%";
 
     renderTopCard("bullishTopPick", "Top Bullish Play", bullishTop);
     renderTopCard("bearishTopPick", "Top Bearish Play", bearishTop);
