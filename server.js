@@ -485,6 +485,7 @@ function buildTradeSetup(
       structureScore += 12;
     }
   }
+  }
 
   let regime = "Balanced";
   let regimePenalty = 0;
@@ -651,13 +652,13 @@ function buildTradeSetup(
     cooldownPenalty -
     regimePenalty;
 
-  const confidence = Math.min(
-    96,
-    Math.max(
-      40,
-      Math.round(52 + score)
-    )
-  );
+ const confidence = Math.min(
+  96,
+  Math.max(
+    55,
+    Math.round(68 + score)
+  )
+);
 
   const tier = getConfidenceTier(confidence);
 
@@ -1063,10 +1064,14 @@ const bullishRankings = rankings.filter(item => item.bias === "Bullish");
 const bearishRankings = rankings.filter(item => item.bias === "Bearish");
 
 const topBullishPick =
-  bullishRankings.find(item => item.confidence >= 75) || null;
+  bullishRankings.length > 0
+    ? bullishRankings[0]
+    : null;
 
 const topBearishPick =
-  bearishRankings.find(item => item.confidence >= 75) || null;
+  bearishRankings.length > 0
+    ? bearishRankings[0]
+    : null;
 
 const bullishCount = bullishRankings.length;
 const bearishCount = bearishRankings.length;
