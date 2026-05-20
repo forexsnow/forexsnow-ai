@@ -364,13 +364,24 @@ function getMomentum(pair, currentPrice) {
   const history = priceHistory[pair] || [];
 
   if (history.length < 2) {
-    return 0;
+    const lastHistoricalPrice = tradeHistory
+      .flatMap(entry => entry.rankings || [])
+      .filter(item => item.pair === pair && item.lastPrice)
+      .map(item => Number(item.lastPrice))
+      .filter(price => Number.isFinite(price))
+      .at(-1);
+
+    if (Number.isFinite(lastHistoricalPrice) && lastHistoricalPrice > 0) {
+      return ((currentPrice - lastHistoricalPrice) / lastHistoricalPrice) * 1000;
+    }
+
+    return 0.001;
   }
 
   const oldest = history[0]?.price;
 
   if (!oldest || !Number.isFinite(oldest)) {
-    return 0;
+    return 0.001;
   }
 
   return ((currentPrice - oldest) / oldest) * 1000;
@@ -427,14 +438,9 @@ function buildTradeSetup(
   sourceMode,
   consensusStrength,
   dataAgeStatus,
-  marketOpen,
-  sourceName = ""
+  marketOpen
 ) {
-  if (momentum === 0) {
-    return null;
-  }
-
-  const bullish = momentum > 0;
+  const bullish = momentum >= 0;
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
 
@@ -444,12 +450,15 @@ function buildTradeSetup(
 
   let cooldownPenalty = 0;
 
-  if (recentPlay && recentPlay.bias !== bias) {
+  if (
+    recentPlay &&
+    recentPlay.bias !== bias
+  ) {
     const ageMinutes =
       (Date.now() - new Date(recentPlay.createdAt).getTime()) / 60000;
 
     if (ageMinutes < 60) {
-      cooldownPenalty += 12;
+      cooldownPenalty += 8;
     }
   }
 
@@ -458,11 +467,8 @@ function buildTradeSetup(
 
   const averageRange =
     recentPrices.length >= 2
-      ? Math.abs(
-          recentPrices[recentPrices.length - 1] -
-            recentPrices[0]
-        )
-      : 0;
+      ? Math.abs(recentPrices[recentPrices.length - 1] - recentPrices[0])
+      : price * 0.002;
 
   let structureScore = 0;
 
@@ -489,24 +495,24 @@ function buildTradeSetup(
   let regime = "Balanced";
   let regimePenalty = 0;
 
- if (strength < 0.0005) {
+  if (strength < 0.0015) {
     regime = "Choppy";
-    regimePenalty += 8;
+    regimePenalty += 4;
   } else if (strength < 0.01) {
     regime = "Range";
-    regimePenalty += 4;
+    regimePenalty += 2;
   } else {
     regime = "Trending";
   }
 
   let volatilityPenalty = 0;
 
-  if (averageRange > 0 && averageRange < price * 0.0006) {
+  if (averageRange < price * 0.0007) {
     volatilityPenalty += 4;
   }
 
-if (strength < 0.0012) {
-    volatilityPenalty += 4;
+  if (strength < 0.003) {
+    volatilityPenalty += 3;
   }
 
   const historyBoost = getConfidenceEvolutionAdjustment(pair, bias);
@@ -517,24 +523,20 @@ if (strength < 0.0012) {
     confidencePenalty += 8;
   }
 
-  if (sourceMode === "Single Source" && sourceName !== "OANDA") {
-    confidencePenalty += 6;
+  if (sourceMode === "Single Source") {
+    confidencePenalty += 4;
   }
 
   if (sourceMode === "Last Known") {
     confidencePenalty += 18;
   }
 
-  if (consensusStrength <= 1 && sourceName !== "OANDA") {
-    confidencePenalty += 6;
-  }
-
-  if (consensusStrength === 2) {
-    confidencePenalty += 2;
-  }
-
-  if (dataAgeStatus === "Unverified" && sourceName !== "OANDA") {
+  if (consensusStrength <= 1 && sourceMode !== "Single Source") {
     confidencePenalty += 4;
+  }
+
+  if (dataAgeStatus === "Unverified") {
+    confidencePenalty += 3;
   }
 
   let consensusBoost = 0;
@@ -543,7 +545,7 @@ if (strength < 0.0012) {
     consensusBoost += 10;
   }
 
-  if (dataAgeStatus === "Verified" || sourceName === "OANDA") {
+  if (dataAgeStatus === "Verified") {
     consensusBoost += 6;
   }
 
@@ -552,7 +554,6 @@ if (strength < 0.0012) {
   }
 
   let sessionBoost = 0;
-
   const hour = new Date().getUTCHours();
 
   if (hour >= 7 && hour <= 11) {
@@ -591,14 +592,13 @@ if (strength < 0.0012) {
         }
 
         if (reopenMove < 0) {
-          reopenAdjustment -= 6;
+          reopenAdjustment -= 4;
         }
       }
     }
   }
 
   const isJpy = pair.includes("JPY");
-
   const stopDistance = isJpy ? 0.55 : 0.0055;
   const targetDistance = isJpy ? 0.99 : 0.0099;
 
@@ -622,42 +622,50 @@ if (strength < 0.0012) {
 
   const risk = Math.abs(price - Number(stopLoss));
   const reward = Math.abs(Number(takeProfit) - price);
-  const rr = reward / risk;
+  const rr = risk > 0 ? reward / risk : 0;
 
   let rrBoost = 0;
 
-  if (Number.isFinite(rr)) {
-    if (rr >= 3) {
-      rrBoost += 10;
-    } else if (rr >= 2) {
-      rrBoost += 6;
-    } else if (rr >= 1.5) {
-      rrBoost += 3;
-    } else if (rr < 1.2) {
-      rrBoost -= 4;
-    }
+  if (rr >= 3) {
+    rrBoost += 10;
+  } else if (rr >= 2) {
+    rrBoost += 6;
+  } else if (rr >= 1.5) {
+    rrBoost += 3;
+  } else if (rr < 1.2) {
+    rrBoost -= 4;
   }
-
-  const score =
-    strength * 260 +
-    historyBoost +
-    consensusBoost +
-    sessionBoost +
-    reopenAdjustment +
-    structureScore +
-    rrBoost -
-    confidencePenalty -
-    volatilityPenalty -
-    cooldownPenalty -
-    regimePenalty;
 
   const confidence = Math.min(
     96,
     Math.max(
-      40,
-      Math.round(52 + score)
+      45,
+      Math.round(
+        52 +
+        strength * 260 +
+        historyBoost +
+        consensusBoost +
+        sessionBoost +
+        reopenAdjustment +
+        structureScore +
+        rrBoost -
+        confidencePenalty -
+        volatilityPenalty -
+        cooldownPenalty -
+        regimePenalty
+      )
     )
   );
+
+  const score =
+    confidence +
+    structureScore +
+    rrBoost +
+    historyBoost +
+    consensusBoost -
+    volatilityPenalty -
+    cooldownPenalty -
+    regimePenalty;
 
   const tier = getConfidenceTier(confidence);
 
@@ -670,12 +678,9 @@ if (strength < 0.0012) {
     tier,
     structureScore,
     rrBoost,
-    rr: Number.isFinite(rr) ? Number(rr.toFixed(2)) : null,
     historyBoost,
     consensusBoost,
     sessionBoost,
-    reopenAdjustment,
-    confidencePenalty,
     regimePenalty,
     volatilityPenalty,
     cooldownPenalty,
@@ -688,8 +693,7 @@ if (strength < 0.0012) {
       ? "Current price momentum supports upside continuation."
       : "Current price momentum shows downside pressure.",
     sourceMode,
-    sourceName,
-    dataAgeStatus: sourceName === "OANDA" ? "Verified Live" : dataAgeStatus,
+    dataAgeStatus,
     regime,
     status: "OPEN",
     createdAt: new Date().toISOString()
@@ -986,8 +990,7 @@ const setup = buildTradeSetup(
   result.sourceMode,
   result.contributors?.length || 1,
   result.dataAgeStatus || "Unverified",
-  marketOpen,
-  result.source
+  marketOpen
 );
 
 if (setup) {
@@ -1020,7 +1023,7 @@ const rankings = rankableSetups
     return tierOrder[a.tier] - tierOrder[b.tier];
   }
 
-  return (b.score ?? b.confidence) - (a.score ?? a.confidence);
+  return (b.score || b.confidence) - (a.score || a.confidence);
 })
     .map((item, index) => ({
       rank: index + 1,
@@ -1062,11 +1065,9 @@ if (eliteSetup) {
 const bullishRankings = rankings.filter(item => item.bias === "Bullish");
 const bearishRankings = rankings.filter(item => item.bias === "Bearish");
 
-const topBullishPick =
-  bullishRankings.find(item => item.confidence >= 75) || null;
+const topBullishPick = bullishRankings[0] || null;
 
-const topBearishPick =
-  bearishRankings.find(item => item.confidence >= 75) || null;
+const topBearishPick = bearishRankings[0] || null;
 
 const bullishCount = bullishRankings.length;
 const bearishCount = bearishRankings.length;
@@ -1256,4 +1257,3 @@ app.get("/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
