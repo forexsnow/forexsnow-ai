@@ -485,12 +485,11 @@ function buildTradeSetup(
       structureScore += 12;
     }
   }
-  }
 
   let regime = "Balanced";
   let regimePenalty = 0;
 
-  if (strength < 0.0015) {
+ if (strength < 0.0005) {
     regime = "Choppy";
     regimePenalty += 8;
   } else if (strength < 0.01) {
@@ -506,7 +505,7 @@ function buildTradeSetup(
     volatilityPenalty += 4;
   }
 
-  if (strength < 0.003) {
+if (strength < 0.0012) {
     volatilityPenalty += 4;
   }
 
@@ -652,13 +651,13 @@ function buildTradeSetup(
     cooldownPenalty -
     regimePenalty;
 
- const confidence = Math.min(
-  96,
-  Math.max(
-    55,
-    Math.round(68 + score)
-  )
-);
+  const confidence = Math.min(
+    96,
+    Math.max(
+      40,
+      Math.round(52 + score)
+    )
+  );
 
   const tier = getConfidenceTier(confidence);
 
@@ -1064,14 +1063,10 @@ const bullishRankings = rankings.filter(item => item.bias === "Bullish");
 const bearishRankings = rankings.filter(item => item.bias === "Bearish");
 
 const topBullishPick =
-  bullishRankings.length > 0
-    ? bullishRankings[0]
-    : null;
+  bullishRankings.find(item => item.confidence >= 75) || null;
 
 const topBearishPick =
-  bearishRankings.length > 0
-    ? bearishRankings[0]
-    : null;
+  bearishRankings.find(item => item.confidence >= 75) || null;
 
 const bullishCount = bullishRankings.length;
 const bearishCount = bearishRankings.length;
@@ -1261,3 +1256,4 @@ app.get("/health", (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
