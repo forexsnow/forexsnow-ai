@@ -1,7 +1,7 @@
 const REFRESH_MS = 15 * 60 * 1000;
 const REFRESH_LABEL = "15 minutes";
 
-let nextRefreshAt = Date.now() + REFRESH_MS;
+let nextRefreshAt = new Date(data.nextUpdateAt).getTime();
 
 document.addEventListener("DOMContentLoaded", () => {
   loadSnapshot();
@@ -24,7 +24,7 @@ async function loadSnapshot() {
     }
 
     window.latestSnapshot = data;
-    nextRefreshAt = Date.now() + REFRESH_MS;
+    nextRefreshAt = new Date(data.nextUpdateAt).getTime();
 
     const bullish = data.bullishRankings || [];
 const bearish = data.bearishRankings || [];
@@ -193,4 +193,3 @@ function updateRefreshCountdown() {
 
 document.getElementById("footerText").innerHTML =
   `© ${new Date().getFullYear()} ForexSnow AI • Live Snapshot Engine • Updated every ${REFRESH_LABEL}`;
-
