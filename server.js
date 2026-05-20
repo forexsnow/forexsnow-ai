@@ -363,13 +363,15 @@ function rememberPrice(pair, price) {
 function getMomentum(pair, currentPrice) {
   const history = priceHistory[pair] || [];
 
-if (history.length < 2) {
-  return 0;
-}
+  if (history.length < 2) {
+    return 0;
+  }
 
-if (!oldest) {
-  return 0;
-}
+  const oldest = history[0]?.price;
+
+  if (!oldest || !Number.isFinite(oldest)) {
+    return 0;
+  }
 
   return ((currentPrice - oldest) / oldest) * 1000;
 }
@@ -425,188 +427,176 @@ function buildTradeSetup(
   sourceMode,
   consensusStrength,
   dataAgeStatus,
-  marketOpen
+  marketOpen,
+  sourceName = ""
 ) {
-
-
-const bullish = momentum > 0;
-  const recentPlay = tradeHistory
-  .flatMap(entry => entry.rankings || [])
-  .find(play => play.pair === pair);
-
-let cooldownPenalty = 0;
-
-if (
-  recentPlay &&
-  recentPlay.bias !== (bullish ? "Bullish" : "Bearish")
-) {
-  const ageMinutes =
-    (Date.now() - new Date(recentPlay.createdAt).getTime()) / 60000;
-
-  if (ageMinutes < 60) {
-    cooldownPenalty += 12;
+  if (momentum === 0) {
+    return null;
   }
-}
+
+  const bullish = momentum > 0;
   const bias = bullish ? "Bullish" : "Bearish";
   const strength = Math.abs(momentum);
-const history = priceHistory[pair] || [];
 
-const recentPrices = history.slice(-6).map(p => p.price);
+  const recentPlay = tradeHistory
+    .flatMap(entry => entry.rankings || [])
+    .find(play => play.pair === pair);
 
-let structureScore = 0;
+  let cooldownPenalty = 0;
 
-if (recentPrices.length >= 4) {
-  const rising =
-    recentPrices[5] > recentPrices[4] &&
-    recentPrices[4] > recentPrices[3];
+  if (recentPlay && recentPlay.bias !== bias) {
+    const ageMinutes =
+      (Date.now() - new Date(recentPlay.createdAt).getTime()) / 60000;
 
-  const falling =
-    recentPrices[5] < recentPrices[4] &&
-    recentPrices[4] < recentPrices[3];
-
-  if (bullish && rising) {
-    structureScore += 8;
+    if (ageMinutes < 60) {
+      cooldownPenalty += 12;
+    }
   }
 
-  if (!bullish && falling) {
-    structureScore += 8;
+  const history = priceHistory[pair] || [];
+  const recentPrices = history.slice(-6).map(p => p.price);
+
+  const averageRange =
+    recentPrices.length >= 2
+      ? Math.abs(
+          recentPrices[recentPrices.length - 1] -
+            recentPrices[0]
+        )
+      : 0;
+
+  let structureScore = 0;
+
+  if (recentPrices.length >= 6) {
+    const bullishStructure =
+      recentPrices[5] > recentPrices[4] &&
+      recentPrices[4] > recentPrices[3] &&
+      recentPrices[3] > recentPrices[2];
+
+    const bearishStructure =
+      recentPrices[5] < recentPrices[4] &&
+      recentPrices[4] < recentPrices[3] &&
+      recentPrices[3] < recentPrices[2];
+
+    if (bullish && bullishStructure) {
+      structureScore += 12;
+    }
+
+    if (!bullish && bearishStructure) {
+      structureScore += 12;
+    }
   }
-}
 
   let regime = "Balanced";
-let regimePenalty = 0;
+  let regimePenalty = 0;
 
-if (strength < 0.003) {
-  regime = "Choppy";
-  regimePenalty += 10;
-}
+  if (strength < 0.0015) {
+    regime = "Choppy";
+    regimePenalty += 8;
+  } else if (strength < 0.01) {
+    regime = "Range";
+    regimePenalty += 4;
+  } else {
+    regime = "Trending";
+  }
 
-if (strength >= 0.003 && strength < 0.01) {
-  regime = "Range";
-  regimePenalty += 4;
-}
+  let volatilityPenalty = 0;
 
-if (strength >= 0.01) {
-  regime = "Trending";
-}
+  if (averageRange > 0 && averageRange < price * 0.0006) {
+    volatilityPenalty += 4;
+  }
 
-let volatilityPenalty = 0;
+  if (strength < 0.003) {
+    volatilityPenalty += 4;
+  }
 
-if (strength < 0.01) {
-  volatilityPenalty += 8;
-}
-
-if (strength < 0.005) {
-  volatilityPenalty += 6;
-}
-  
   const historyBoost = getConfidenceEvolutionAdjustment(pair, bias);
 
   let confidencePenalty = 0;
 
-if (!marketOpen) {
-  confidencePenalty += 8;
-}
+  if (!marketOpen) {
+    confidencePenalty += 8;
+  }
 
-if (sourceMode === "Single Source") {
-  confidencePenalty += 10;
-}
+  if (sourceMode === "Single Source" && sourceName !== "OANDA") {
+    confidencePenalty += 6;
+  }
 
-if (sourceMode === "Last Known") {
-  confidencePenalty += 18;
-}
+  if (sourceMode === "Last Known") {
+    confidencePenalty += 18;
+  }
 
-if (consensusStrength <= 1) {
-  confidencePenalty += 10;
-}
+  if (consensusStrength <= 1 && sourceName !== "OANDA") {
+    confidencePenalty += 6;
+  }
 
-if (consensusStrength === 2) {
-  confidencePenalty += 4;
-}
+  if (consensusStrength === 2) {
+    confidencePenalty += 2;
+  }
 
-if (dataAgeStatus === "Unverified") {
-  confidencePenalty += 6;
-}
+  if (dataAgeStatus === "Unverified" && sourceName !== "OANDA") {
+    confidencePenalty += 4;
+  }
+
   let consensusBoost = 0;
 
-if (sourceMode === "Consensus") {
-  consensusBoost += 10;
-}
+  if (sourceMode === "Consensus") {
+    consensusBoost += 10;
+  }
 
-if (dataAgeStatus === "Verified") {
-  consensusBoost += 6;
-}
+  if (dataAgeStatus === "Verified" || sourceName === "OANDA") {
+    consensusBoost += 6;
+  }
 
-if (marketOpen) {
-  consensusBoost += 4;
-}
+  if (marketOpen) {
+    consensusBoost += 4;
+  }
 
-let sessionBoost = 0;
+  let sessionBoost = 0;
 
-const hour = new Date().getUTCHours();
+  const hour = new Date().getUTCHours();
 
-if (hour >= 7 && hour <= 11) {
-  sessionBoost += 12;
-}
+  if (hour >= 7 && hour <= 11) {
+    sessionBoost += 8;
+  }
 
-if (hour >= 12 && hour <= 16) {
-  sessionBoost += 15;
-}
+  if (hour >= 12 && hour <= 16) {
+    sessionBoost += 10;
+  }
 
-if (hour >= 0 && hour <= 5) {
-  sessionBoost -= 6;
-}
+  if (hour >= 0 && hour <= 5) {
+    sessionBoost -= 4;
+  }
 
-let reopenAdjustment = 0;
+  let reopenAdjustment = 0;
 
-if (
-  lastLiveSnapshot &&
-  marketOpen &&
-  lastLiveSnapshot.rankings?.length
-) {
-  const previous = lastLiveSnapshot.rankings.find(
-    item => item.pair === pair
-  );
+  if (
+    lastLiveSnapshot &&
+    marketOpen &&
+    lastLiveSnapshot.rankings?.length
+  ) {
+    const previous = lastLiveSnapshot.rankings.find(
+      item => item.pair === pair
+    );
 
-  if (previous) {
-    const oldEntry = Number(previous.entry);
+    if (previous) {
+      const oldEntry = Number(previous.lastPrice || previous.entry);
 
-    if (Number.isFinite(oldEntry)) {
-      const reopenMove = bullish
-        ? price - oldEntry
-        : oldEntry - price;
+      if (Number.isFinite(oldEntry)) {
+        const reopenMove = bullish
+          ? price - oldEntry
+          : oldEntry - price;
 
-      if (reopenMove > 0) {
-        reopenAdjustment += 4;
-      }
+        if (reopenMove > 0) {
+          reopenAdjustment += 4;
+        }
 
-      if (reopenMove < 0) {
-        reopenAdjustment -= 6;
+        if (reopenMove < 0) {
+          reopenAdjustment -= 6;
+        }
       }
     }
   }
-}
-  
-const confidence = Math.min(
-  96,
-  Math.max(
-    40,
-    Math.round(
-      52 +
-strength * 260 +
-historyBoost +
-consensusBoost +
-sessionBoost +
-reopenAdjustment +
-structureScore -
-confidencePenalty -
-volatilityPenalty -
-cooldownPenalty -
-regimePenalty
-    )
-  )
-);
-  const tier = getConfidenceTier(confidence);
+
   const isJpy = pair.includes("JPY");
 
   const stopDistance = isJpy ? 0.55 : 0.0055;
@@ -630,25 +620,65 @@ regimePenalty
       ? (price + targetDistance).toFixed(5)
       : (price - targetDistance).toFixed(5);
 
-const risk =
-  Math.abs(price - Number(stopLoss));
+  const risk = Math.abs(price - Number(stopLoss));
+  const reward = Math.abs(Number(takeProfit) - price);
+  const rr = reward / risk;
 
-const reward =
-  Math.abs(Number(takeProfit) - price);
+  let rrBoost = 0;
 
-const rr =
-  reward / risk;
+  if (Number.isFinite(rr)) {
+    if (rr >= 3) {
+      rrBoost += 10;
+    } else if (rr >= 2) {
+      rrBoost += 6;
+    } else if (rr >= 1.5) {
+      rrBoost += 3;
+    } else if (rr < 1.2) {
+      rrBoost -= 4;
+    }
+  }
 
-if (rr < 1.5) {
-  return null;
-}
+  const score =
+    strength * 260 +
+    historyBoost +
+    consensusBoost +
+    sessionBoost +
+    reopenAdjustment +
+    structureScore +
+    rrBoost -
+    confidencePenalty -
+    volatilityPenalty -
+    cooldownPenalty -
+    regimePenalty;
+
+  const confidence = Math.min(
+    96,
+    Math.max(
+      40,
+      Math.round(52 + score)
+    )
+  );
+
+  const tier = getConfidenceTier(confidence);
 
   return {
     pair,
-lastPrice: entry,
-bias,
-confidence,
-tier,
+    lastPrice: entry,
+    bias,
+    confidence,
+    score,
+    tier,
+    structureScore,
+    rrBoost,
+    rr: Number.isFinite(rr) ? Number(rr.toFixed(2)) : null,
+    historyBoost,
+    consensusBoost,
+    sessionBoost,
+    reopenAdjustment,
+    confidencePenalty,
+    regimePenalty,
+    volatilityPenalty,
+    cooldownPenalty,
     stopLoss,
     takeProfit,
     getOutPoint: bullish
@@ -658,7 +688,8 @@ tier,
       ? "Current price momentum supports upside continuation."
       : "Current price momentum shows downside pressure.",
     sourceMode,
-    dataAgeStatus,
+    sourceName,
+    dataAgeStatus: sourceName === "OANDA" ? "Verified Live" : dataAgeStatus,
     regime,
     status: "OPEN",
     createdAt: new Date().toISOString()
@@ -955,7 +986,8 @@ const setup = buildTradeSetup(
   result.sourceMode,
   result.contributors?.length || 1,
   result.dataAgeStatus || "Unverified",
-  marketOpen
+  marketOpen,
+  result.source
 );
 
 if (setup) {
@@ -988,7 +1020,7 @@ const rankings = rankableSetups
     return tierOrder[a.tier] - tierOrder[b.tier];
   }
 
-  return b.confidence - a.confidence;
+  return (b.score ?? b.confidence) - (a.score ?? a.confidence);
 })
     .map((item, index) => ({
       rank: index + 1,
@@ -1188,9 +1220,19 @@ if (marketOpen && rankings.length > 0) {
   console.log(`Snapshot updated #${updateCount}`);
 }
 
-buildSnapshot();
+async function safeBuildSnapshot() {
+  try {
+    await buildSnapshot();
+  } catch (err) {
+    console.error("Snapshot build failed:", err);
+  }
+}
 
-setInterval(buildSnapshot, ACTIVE_REFRESH_MS);
+safeBuildSnapshot();
+
+setInterval(() => {
+  safeBuildSnapshot();
+}, ACTIVE_REFRESH_MS);
 
 app.get("/api/snapshot", (req, res) => {
   res.json(snapshot);
